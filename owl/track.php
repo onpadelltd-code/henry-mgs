@@ -70,17 +70,18 @@ foreach (array_reverse(array_keys($db['days'])) as $k) { if ($k < $today) { $pre
 
 $dateNice = date('D j M');
 $G = '#1d9e55'; $R = '#d64560'; $B = '#0e1f42'; $GOLD = '#b8860b';
+$CHILD = h($snap['name'] ?? 'Your owl');   // name comes from the app's own settings
 
 if ($snap && !empty($snap['today']['done'])) {
   $c = (int)($snap['today']['correct'] ?? 0); $t = max(1,(int)($snap['today']['total'] ?? 1));
   $pct = round($c / $t * 100);
-  $subject = "🦉 Henry's Owl Academy — $dateNice: $pct% accuracy, streak {$snap['streak']}" . (!empty($snap['earned']) ? ", +{$snap['earned']} min earned" : "");
+  $subject = "🦉 {$CHILD}'s Owl Academy — $dateNice: $pct% accuracy, streak {$snap['streak']}" . (!empty($snap['earned']) ? ", +{$snap['earned']} min earned" : "");
   $headline = "<span style='color:$G'>✅ Mission completed</span> at " . h($snap['at'] ?? '?');
 } elseif ($snap) {
-  $subject = "🦉 Henry's Owl Academy — $dateNice: no mission completed yet";
+  $subject = "🦉 {$CHILD}'s Owl Academy — $dateNice: no mission completed yet";
   $headline = "<span style='color:$R'>⏳ No mission completed today (yet)</span>";
 } else {
-  $subject = "🦉 Henry's Owl Academy — $dateNice: no activity recorded";
+  $subject = "🦉 Owl Academy — $dateNice: no activity recorded";
   $headline = "<span style='color:$R'>⏳ No activity recorded today</span>";
 }
 
@@ -130,7 +131,7 @@ if ($snap) {
 $html = "<div style='font-family:-apple-system,Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;color:#222'>
   <div style='background:$B;border-radius:12px 12px 0 0;padding:18px 22px'>
     <div style='color:#ffc845;font-size:20px;font-weight:800'>🦉 Owl Academy — Daily Report</div>
-    <div style='color:#9db1d9;font-size:13px'>Henry · $dateNice</div>
+    <div style='color:#9db1d9;font-size:13px'>$CHILD · $dateNice</div>
   </div>
   <div style='border:1px solid #e5e8f0;border-top:none;border-radius:0 0 12px 12px;padding:20px 22px'>
     <p style='font-size:16px;font-weight:700;margin:0 0 14px'>$headline</p>

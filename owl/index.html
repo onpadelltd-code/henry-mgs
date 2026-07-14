@@ -367,13 +367,21 @@ td .spark{vertical-align:middle}
     <div class="sec-title">Recent slips (what to chat about)</div>
     <div id="pSlips"></div>
     <div class="sec-title">Child setup</div>
-    <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px">
+    <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      Name:
+      <input id="nameInp" onchange="changeName(this.value)" style="width:110px;background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font-weight:800">
       School year:
       <select id="yearSel" onchange="changeYear(this.value)" style="background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font-weight:800">
         <option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option>
         <option value="5">Year 5</option><option value="6">Year 6</option><option value="7">Year 7</option>
       </select>
       <span id="sylStatus" style="font-size:11px;color:var(--ink-dim)"></span>
+    </div>
+    <div style="margin-top:8px">
+      <label style="font-size:11px;font-weight:900;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.5px">About your child (optional — guides the AI coach)</label>
+      <textarea id="aboutInp" rows="2" onchange="changeAbout(this.value)"
+        placeholder="e.g. attends a selective school; loves football and dinosaurs; finds spelling tricky"
+        style="width:100%;background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink);font-weight:700;font-size:13px;font-family:inherit;resize:vertical"></textarea>
     </div>
     <div class="sec-title">Screen-Time Rewards 🎮</div>
     <div id="screenBox"></div>
@@ -447,7 +455,7 @@ const KEY='owlAcademy.v1';
 function freshState(){
   const skills={};
   for(const s of STRANDS)skills[s.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
-  return {name:'Henry',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
+  return {name:'Henry',about:'',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
     extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
     coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0},
     screen:{on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]},
@@ -470,6 +478,7 @@ if(!S.mastered)S.mastered={};
 if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
 if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
 if(!S.shop)S.shop=defaultShop();
+if(S.about===undefined)S.about='';
 function save(){S._ts=Date.now();localStorage.setItem(KEY,JSON.stringify(S));pushState();}
 
 /* ---------- cross-device sync (iPad <-> fridge <-> phones) ---------- */
@@ -505,6 +514,7 @@ async function pullState(){
     if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
     if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
 if(!S.shop)S.shop=defaultShop();
+    if(S.about===undefined)S.about='';
     if(localKey)S.coach.apiKey=localKey;
     localStorage.setItem(KEY,JSON.stringify(S));            // direct write: no push-back loop
     if(!$('view-home').classList.contains('hidden'))renderHome();
@@ -1223,6 +1233,16 @@ function changeYear(y){
   toast('🎒 School year set to Year '+y);
   if(S.coach.apiKey)ensureSyllabus();
 }
+function changeName(v){
+  v=String(v||'').trim().slice(0,16);
+  if(!v)return;
+  S.name=v;save();pushLeague();renderHome();
+  toast('✏️ Name updated');
+}
+function changeAbout(v){
+  S.about=String(v||'').trim().slice(0,300);save();
+  toast('📝 Coach briefing updated');
+}
 async function ensureSyllabus(){
   if(!S.coach.apiKey||!S.year)return;
   const syl=S.coach.syllabus;
@@ -1259,11 +1279,12 @@ function coachPrompt(){
   const dTarget=id=>Math.max(1,Math.min(5,Math.round((S.skills[id].rating-800)/160)));
   const slips=S.slips.slice(0,20).map(s=>`- [${s.skill}] ${s.q} — answered "${s.given}", correct "${s.ans}"`).join('\n')||'(none yet)';
   const have=cat=>mergedBank(cat).map(w=>w[BANK_KEY[cat]]).join('; ');
-  const yearLine=S.year?`He is currently in Year ${S.year} of the UK school system.`:'';
+  const yearLine=S.year?` currently in Year ${S.year} of the UK school system`:'';
+  const aboutLine=S.about?` About this child (from their parent): ${S.about}.`:'';
   const sylBlock=(S.coach.syllabus&&S.coach.syllabus.year===S.year)
     ?`\n\nCURRENT YEAR ${S.year} CURRICULUM GUIDANCE (from a live syllabus search — tailor questions to this):\n${S.coach.syllabus.text}\n`
     :'';
-  return `You are the content engine for "Owl Academy", a learning app for ${S.name}, an able 8-year-old boy starting Year 4 at Manchester Grammar School Junior School (a selective UK school that teaches beyond the National Curriculum; his Year 4 language is French). ${yearLine}${sylBlock}
+  return `You are the content engine for "Owl Academy", a learning app for ${S.name}, a UK primary-school child${yearLine}.${aboutLine}${sylBlock}
 
 Generate NEW practice items pitched slightly above his current level. Difficulty tags run 1 (easy Y3) to 5 (stretch, Y5/6 level). Current difficulty targets by category: spelling/grammar ${dTarget('spell')}, vocabulary ${dTarget('vocab')}, reasoning ${dTarget('vr')}, French ${dTarget('fr')}. Generate most items AT the target, a few one step above.
 
@@ -1548,6 +1569,8 @@ function showView(v){
   if(v==='practice')renderPractice();
   if(v==='parent'){
     renderParent();renderCoach();renderScreen();
+    $('nameInp').value=S.name;
+    $('aboutInp').value=S.about||'';
     if(S.year)$('yearSel').value=String(S.year);
     $('sylStatus').textContent=(S.coach.syllabus&&S.coach.syllabus.year===S.year)
       ?'✓ live syllabus loaded '+new Date(S.coach.syllabus.ts).toLocaleDateString('en-GB')

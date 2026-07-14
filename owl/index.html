@@ -206,8 +206,11 @@ td .spark{vertical-align:middle}
 .lg-row .st{font-size:12px;color:var(--ink-dim)}
 
 /* ---------- family PIN gate ---------- */
-#pinGate,#ppinGate{position:fixed;inset:0;z-index:200;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;padding:20px}
+#pinGate,#ppinGate,#yearGate{position:fixed;inset:0;z-index:200;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;padding:20px}
 #ppinGate{background:#081430f2;backdrop-filter:blur(6px)}
+#yearGate{z-index:150}
+#yearBtns button{background:linear-gradient(180deg,#2a3f6e,#1c2c52);border:1px solid var(--line);border-radius:12px;color:var(--ink);font-family:'Bungee';font-size:15px;padding:14px 6px;cursor:pointer}
+#yearBtns button:active{transform:scale(.95)}
 .pin-card{background:var(--panel);border:1px solid var(--gold-dim);border-radius:22px;padding:34px 28px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 40px #ffc84518}
 .pin-card .owl{font-size:56px;display:block;margin-bottom:8px}
 .pin-card h2{font-family:'Bungee';color:var(--gold);font-size:20px;margin-bottom:4px}
@@ -231,6 +234,16 @@ td .spark{vertical-align:middle}
     <p>Enter the family PIN to open Owl Academy</p>
     <input id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
     <button onclick="tryPin()">UNLOCK</button>
+  </div>
+</div>
+
+<div id="yearGate" style="display:none">
+  <div class="pin-card">
+    <span class="owl">🎒</span>
+    <h2>WHICH YEAR ARE YOU IN?</h2>
+    <p>Pick your school year (or the one you're about to start) so your missions fit just right</p>
+    <div class="shop-grid" id="yearBtns" style="grid-template-columns:1fr 1fr 1fr"></div>
+    <p style="margin-top:12px;font-size:11px">A grown-up can change this later in the Grown-Ups tab</p>
   </div>
 </div>
 
@@ -353,6 +366,15 @@ td .spark{vertical-align:middle}
     <div class="parent-note" id="pAdvice"></div>
     <div class="sec-title">Recent slips (what to chat about)</div>
     <div id="pSlips"></div>
+    <div class="sec-title">Child setup</div>
+    <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px">
+      School year:
+      <select id="yearSel" onchange="changeYear(this.value)" style="background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font-weight:800">
+        <option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option>
+        <option value="5">Year 5</option><option value="6">Year 6</option><option value="7">Year 7</option>
+      </select>
+      <span id="sylStatus" style="font-size:11px;color:var(--ink-dim)"></span>
+    </div>
     <div class="sec-title">Screen-Time Rewards 🎮</div>
     <div id="screenBox"></div>
     <div class="sec-title">Auto-Coach — self-improving question bank</div>
@@ -425,7 +447,7 @@ const KEY='owlAcademy.v1';
 function freshState(){
   const skills={};
   for(const s of STRANDS)skills[s.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
-  return {name:'Henry',xp:0,streak:0,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
+  return {name:'Henry',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
     extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
     coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0},
     screen:{on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]},
@@ -1175,6 +1197,58 @@ const COACH_SCHEMA={type:'object',additionalProperties:false,
   odd:{type:'array',items:COACH_ITEM({options:{type:'array',items:{type:'string'}},answer:{type:'string'},why:{type:'string'},diff:{type:'integer'}},['options','answer','why','diff'])},
  },required:['spell','gram','syn','ant','fr','odd']};
 
+/* ---------- school year & live syllabus ---------- */
+function initYearGate(){
+  if(S.year)return;
+  const g=$('yearGate');g.style.display='flex';
+  $('yearBtns').innerHTML=[2,3,4,5,6,7].map(y=>`<button onclick="setYear(${y})">Year ${y}</button>`).join('');
+}
+function setYear(y){
+  S.year=+y;
+  seedRatingsForYear();
+  S.coach.syllabus=null;              // force a fresh syllabus lookup for this year
+  save();
+  $('yearGate').style.display='none';
+  renderHome();
+  toast('🎒 Year '+y+' — missions tuned!');
+  if(S.coach.apiKey)ensureSyllabus();
+}
+function seedRatingsForYear(){
+  // only untouched skills are reseeded — established ratings are never clobbered
+  const seed=Math.max(850,Math.min(1350,1050+(S.year-4)*100));
+  for(const st of STRANDS)if(S.skills[st.id].attempts===0)S.skills[st.id].rating=seed;
+}
+function changeYear(y){
+  S.year=+y;seedRatingsForYear();S.coach.syllabus=null;save();
+  toast('🎒 School year set to Year '+y);
+  if(S.coach.apiKey)ensureSyllabus();
+}
+async function ensureSyllabus(){
+  if(!S.coach.apiKey||!S.year)return;
+  const syl=S.coach.syllabus;
+  if(syl&&syl.year===S.year&&Date.now()-syl.ts<60*864e5)return;   // fresh enough
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'content-type':'application/json','x-api-key':S.coach.apiKey,
+        'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:COACH_MODEL,max_tokens:2500,
+        tools:[{type:'web_search_20260209',name:'web_search',max_uses:3}],
+        messages:[{role:'user',content:'Search for the CURRENT UK national curriculum programme of study for Year '+S.year+' (Key Stage '+(S.year<3?1:2)+'). Then write a ~250-word practical summary of what a Year '+S.year+' pupil is expected to master in: maths; English spelling/grammar/vocabulary; and languages if applicable. Write it as guidance notes for someone authoring practice questions. Plain text only.'}],
+      }),
+    });
+    if(!res.ok)return;
+    const data=await res.json();
+    if(data.stop_reason==='refusal')return;
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join(' ').trim();
+    if(text.length>100){
+      S.coach.syllabus={year:S.year,text:text.slice(0,2000),ts:Date.now()};
+      save();
+    }
+  }catch(e){}
+}
+
 function coachNeeded(){
   if(!S.coach.apiKey||!S.coach.auto)return false;
   if(!S.coach.lastRefresh||Date.now()-S.coach.lastRefresh>7*864e5)return true;
@@ -1185,7 +1259,11 @@ function coachPrompt(){
   const dTarget=id=>Math.max(1,Math.min(5,Math.round((S.skills[id].rating-800)/160)));
   const slips=S.slips.slice(0,20).map(s=>`- [${s.skill}] ${s.q} — answered "${s.given}", correct "${s.ans}"`).join('\n')||'(none yet)';
   const have=cat=>mergedBank(cat).map(w=>w[BANK_KEY[cat]]).join('; ');
-  return `You are the content engine for "Owl Academy", a learning app for ${S.name}, an able 8-year-old boy starting Year 4 at Manchester Grammar School Junior School (a selective UK school that teaches beyond the National Curriculum; his Year 4 language is French).
+  const yearLine=S.year?`He is currently in Year ${S.year} of the UK school system.`:'';
+  const sylBlock=(S.coach.syllabus&&S.coach.syllabus.year===S.year)
+    ?`\n\nCURRENT YEAR ${S.year} CURRICULUM GUIDANCE (from a live syllabus search — tailor questions to this):\n${S.coach.syllabus.text}\n`
+    :'';
+  return `You are the content engine for "Owl Academy", a learning app for ${S.name}, an able 8-year-old boy starting Year 4 at Manchester Grammar School Junior School (a selective UK school that teaches beyond the National Curriculum; his Year 4 language is French). ${yearLine}${sylBlock}
 
 Generate NEW practice items pitched slightly above his current level. Difficulty tags run 1 (easy Y3) to 5 (stretch, Y5/6 level). Current difficulty targets by category: spelling/grammar ${dTarget('spell')}, vocabulary ${dTarget('vocab')}, reasoning ${dTarget('vr')}, French ${dTarget('fr')}. Generate most items AT the target, a few one step above.
 
@@ -1211,6 +1289,7 @@ STRICT RULES:
 async function coachRefresh(manual){
   if(!S.coach.apiKey){if(manual)alert('Add your Anthropic API key first (get one at console.anthropic.com).');return;}
   S.coach.lastResult='working…';renderCoach&&renderCoach();
+  await ensureSyllabus();   // year-specific curriculum guidance, freshly searched when stale
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -1467,7 +1546,13 @@ function showView(v){
   }
   if(v==='home')renderHome();
   if(v==='practice')renderPractice();
-  if(v==='parent'){renderParent();renderCoach();renderScreen();}
+  if(v==='parent'){
+    renderParent();renderCoach();renderScreen();
+    if(S.year)$('yearSel').value=String(S.year);
+    $('sylStatus').textContent=(S.coach.syllabus&&S.coach.syllabus.year===S.year)
+      ?'✓ live syllabus loaded '+new Date(S.coach.syllabus.ts).toLocaleDateString('en-GB')
+      :(S.coach.apiKey?'syllabus will be fetched on next refresh':'add an API key to enable live syllabus tailoring');
+  }
   window.scrollTo(0,0);
 }
 function goHome(){showView('home');}
@@ -1534,6 +1619,7 @@ function changeParentPin(){
     if(gap>2){S.streak=0;save();}
   }
   renderHome();
+  initYearGate();                           // first run: ask which school year
   pullState();                              // adopt newer progress from another device
   pushLeague();renderLeague();              // owl league: report in + show the board
   setInterval(pullState,300000);            // fridge/scoreboard mode: refresh every 5 min

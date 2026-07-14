@@ -370,6 +370,9 @@ td .spark{vertical-align:middle}
     <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       Name:
       <input id="nameInp" onchange="changeName(this.value)" style="width:110px;background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font-weight:800">
+      <select id="sexSel" onchange="changeSex(this.value)" style="background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font-weight:800">
+        <option value="m">Boy</option><option value="f">Girl</option>
+      </select>
       School year:
       <select id="yearSel" onchange="changeYear(this.value)" style="background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font-weight:800">
         <option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option>
@@ -452,10 +455,11 @@ function rankOf(r){let out=RANKS[0];for(const k of RANKS)if(r>=k[0])out=k;return
 
 /* ---------- state ---------- */
 const KEY='owlAcademy.v1';
+const CHILD_SEX='m'; // 'm' or 'f' — default for this instance, changeable in Grown-Ups
 function freshState(){
   const skills={};
   for(const s of STRANDS)skills[s.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
-  return {name:'Henry',about:'',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
+  return {name:'Henry',sex:CHILD_SEX,about:'',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
     extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
     coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0},
     screen:{on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]},
@@ -479,6 +483,8 @@ if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0}
 if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
 if(!S.shop)S.shop=defaultShop();
 if(S.about===undefined)S.about='';
+if(S.sex===undefined)S.sex=CHILD_SEX;
+function pron(){return S.sex==='f'?{they:'she',their:'her',them:'her'}:{they:'he',their:'his',them:'him'};}
 function save(){S._ts=Date.now();localStorage.setItem(KEY,JSON.stringify(S));pushState();}
 
 /* ---------- cross-device sync (iPad <-> fridge <-> phones) ---------- */
@@ -515,6 +521,7 @@ async function pullState(){
     if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
 if(!S.shop)S.shop=defaultShop();
     if(S.about===undefined)S.about='';
+    if(S.sex===undefined)S.sex=CHILD_SEX;
     if(localKey)S.coach.apiKey=localKey;
     localStorage.setItem(KEY,JSON.stringify(S));            // direct write: no push-back loop
     if(!$('view-home').classList.contains('hidden'))renderHome();
@@ -1239,6 +1246,7 @@ function changeName(v){
   S.name=v;save();pushLeague();renderHome();
   toast('✏️ Name updated');
 }
+function changeSex(v){S.sex=(v==='f'?'f':'m');save();toast('✏️ Updated');}
 function changeAbout(v){
   S.about=String(v||'').trim().slice(0,300);save();
   toast('📝 Coach briefing updated');
@@ -1284,7 +1292,7 @@ function coachPrompt(){
   const sylBlock=(S.coach.syllabus&&S.coach.syllabus.year===S.year)
     ?`\n\nCURRENT YEAR ${S.year} CURRICULUM GUIDANCE (from a live syllabus search — tailor questions to this):\n${S.coach.syllabus.text}\n`
     :'';
-  return `You are the content engine for "Owl Academy", a learning app for ${S.name}, a UK primary-school child${yearLine}.${aboutLine}${sylBlock}
+  return `You are the content engine for "Owl Academy", a learning app for ${S.name}, a UK primary-school ${S.sex==='f'?'girl':'boy'}${yearLine}.${aboutLine}${sylBlock}
 
 Generate NEW practice items pitched slightly above his current level. Difficulty tags run 1 (easy Y3) to 5 (stretch, Y5/6 level). Current difficulty targets by category: spelling/grammar ${dTarget('spell')}, vocabulary ${dTarget('vocab')}, reasoning ${dTarget('vr')}, French ${dTarget('fr')}. Generate most items AT the target, a few one step above.
 
@@ -1505,7 +1513,7 @@ function renderScreen(){
    :`${pend?'<div style="font-size:12px;font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🎁 Reward requests — needs your decision</div>'+pend:''}
      <div style="font-size:13px;line-height:1.7">
       Bank balance: <b style="color:var(--green);font-size:17px">${sc.bank} min</b> of Owl-minutes
-      <span style="color:var(--ink-dim)">· earned by completing the first mission each day (base ${sc.base} + accuracy bonus + ${sc.sb} streak bonus, max ${sc.cap}/day). ${S.name} chooses their own rewards in the shop; approving an item here is your cue to grant the time / buy the voucher / make the transfer.</span></div>
+      <span style="color:var(--ink-dim)">· earned by completing the first mission each day (base ${sc.base} + accuracy bonus + ${sc.sb} streak bonus, max ${sc.cap}/day). ${S.name} chooses ${pron().their} own rewards in the shop; approving an item here is your cue to grant the time / buy the voucher / make the transfer.</span></div>
      <div style="margin-top:10px;font-size:11px;font-weight:900;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.5px">Reward shop prices</div>
      ${shopSet}
      <div class="spend-row">
@@ -1570,6 +1578,7 @@ function showView(v){
   if(v==='parent'){
     renderParent();renderCoach();renderScreen();
     $('nameInp').value=S.name;
+    $('sexSel').value=S.sex||CHILD_SEX;
     $('aboutInp').value=S.about||'';
     if(S.year)$('yearSel').value=String(S.year);
     $('sylStatus').textContent=(S.coach.syllabus&&S.coach.syllabus.year===S.year)

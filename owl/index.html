@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owl Academy — Henry's MGS Training HQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-deep:#081430; --navy:#0e1f42; --panel:#132a54; --panel-hi:#1a3567;
+  --gold:#ffc845; --gold-dim:#c99b2f; --cyan:#3ee0f0; --coral:#ff5d73;
+  --green:#4ade80; --ink:#eef3ff; --ink-dim:#9db1d9; --line:#25407a;
+  --r:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  font-family:'Nunito',sans-serif;background:var(--navy-deep);color:var(--ink);
+  min-height:100vh;overflow-x:hidden;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, #16306680 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 20%, #0d3a5533 0%, transparent 70%);
+}
+/* star field */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(1px 1px at 12% 22%,#fff8 0,transparent 100%),radial-gradient(1px 1px at 78% 12%,#fff6 0,transparent 100%),radial-gradient(1.5px 1.5px at 55% 45%,#fff5 0,transparent 100%),radial-gradient(1px 1px at 30% 70%,#fff7 0,transparent 100%),radial-gradient(1px 1px at 88% 60%,#fff5 0,transparent 100%),radial-gradient(1.5px 1.5px at 8% 88%,#fff6 0,transparent 100%),radial-gradient(1px 1px at 65% 85%,#fff4 0,transparent 100%),radial-gradient(1px 1px at 42% 8%,#fff6 0,transparent 100%);
+}
+.app{max-width:900px;margin:0 auto;padding:16px 16px 90px;position:relative}
+h1,h2,.display{font-family:'Bungee',cursive;font-weight:400;letter-spacing:.5px}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:14px;padding:10px 4px 18px}
+.owl-badge{width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#1e3c78,#0c1d40 70%);
+  display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;
+  border:2px solid var(--gold);box-shadow:0 0 18px #ffc84540, inset 0 0 12px #ffc84520}
+.head-txt h1{font-size:clamp(18px,4.5vw,26px);color:var(--gold);text-shadow:0 2px 0 #00000060}
+.head-txt p{color:var(--ink-dim);font-size:13px;font-weight:700}
+.head-stats{margin-left:auto;display:flex;gap:10px}
+.stat-chip{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:7px 12px;text-align:center;min-width:64px}
+.stat-chip .v{font-family:'Bungee';font-size:16px;color:var(--cyan)}
+.stat-chip .l{font-size:10px;color:var(--ink-dim);font-weight:800;text-transform:uppercase;letter-spacing:1px}
+.stat-chip.gold .v{color:var(--gold)}
+
+/* ---------- nav ---------- */
+nav{position:fixed;bottom:0;left:0;right:0;background:#0a1836ee;backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);display:flex;justify-content:center;gap:4px;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:50}
+nav button{background:none;border:none;color:var(--ink-dim);font-family:'Nunito';font-weight:800;font-size:11px;
+  padding:8px 16px;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:.2s}
+nav button .ic{font-size:20px}
+nav button.on{color:var(--gold);background:#ffc84518}
+nav button:active{transform:scale(.93)}
+
+/* ---------- cards ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px;
+  box-shadow:0 6px 20px #00000040}
+.card.glow{border-color:var(--gold-dim);box-shadow:0 0 24px #ffc84518, 0 6px 20px #00000040}
+
+/* ---------- mission launch ---------- */
+.launch{position:relative;overflow:hidden;text-align:center;padding:28px 18px}
+.launch::before{content:'';position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 70%,#ffc84512 75%,transparent 80%);animation:sweep 6s linear infinite}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.launch h2{font-size:clamp(20px,5vw,28px);color:var(--ink);margin-bottom:6px;position:relative}
+.launch .sub{color:var(--ink-dim);font-weight:700;font-size:14px;margin-bottom:18px;position:relative}
+.big-btn{font-family:'Bungee';font-size:clamp(16px,4vw,20px);color:#081430;background:linear-gradient(180deg,#ffd970,var(--gold) 60%,#eab02c);
+  border:none;border-radius:16px;padding:16px 34px;cursor:pointer;position:relative;
+  box-shadow:0 5px 0 #a87c1c, 0 10px 24px #ffc84530;transition:.15s}
+.big-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #a87c1c}
+.big-btn.done{background:linear-gradient(180deg,#67e8a2,var(--green) 60%,#2fae5e);box-shadow:0 5px 0 #1d7c42}
+.big-btn.cyan{background:linear-gradient(180deg,#8beefb,var(--cyan) 60%,#1cb8c9);box-shadow:0 5px 0 #12707c}
+
+/* ---------- skill grid ---------- */
+.sec-title{display:flex;align-items:center;gap:8px;margin:20px 4px 10px;color:var(--ink-dim);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:2px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.skill-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;transition:.15s;position:relative}
+.skill-card:hover{background:var(--panel-hi);transform:translateY(-2px)}
+.skill-card .ico{font-size:24px}
+.skill-card .nm{font-weight:900;font-size:13px;margin:6px 0 2px}
+.skill-card .rk{font-size:11px;font-weight:800}
+.skill-card .bar{height:5px;background:#0a1a3a;border-radius:3px;margin-top:8px;overflow:hidden}
+.skill-card .bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),var(--gold))}
+.rk.r0{color:#cd9a63}.rk.r1{color:#c9d4e8}.rk.r2{color:var(--gold)}.rk.r3{color:#9be5ff}.rk.r4{color:#ffdf8e;text-shadow:0 0 8px #ffc84580}
+
+/* ---------- quiz ---------- */
+.quiz-top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.q-progress{flex:1;height:10px;background:#0a1a3a;border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.q-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:5px;transition:width .4s cubic-bezier(.6,0,.2,1.4)}
+.q-count{font-family:'Bungee';font-size:13px;color:var(--ink-dim)}
+.q-quit{background:none;border:1px solid var(--line);color:var(--ink-dim);border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:800;font-size:12px}
+.q-tag{display:inline-flex;align-items:center;gap:6px;background:#0a1a3a;border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:800;color:var(--cyan);margin-bottom:12px}
+.q-tag.boss{color:var(--gold);border-color:var(--gold-dim);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 14px #ffc84560}}
+.q-text{font-size:clamp(19px,4.5vw,24px);font-weight:800;line-height:1.45;margin-bottom:20px;min-height:60px}
+.q-text .hl{color:var(--gold)}
+.q-text .frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 3px;font-size:.85em;line-height:1.1}
+.q-text .frac b{border-bottom:2px solid var(--ink);padding:0 4px}
+.q-text .frac span{padding:0 4px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choices.one-col{grid-template-columns:1fr}
+.choice{background:var(--panel-hi);border:2px solid var(--line);border-radius:14px;padding:16px 14px;font-family:'Nunito';font-weight:900;font-size:18px;color:var(--ink);cursor:pointer;transition:.12s;text-align:center}
+.choice:hover{border-color:var(--cyan)}
+.choice:active{transform:scale(.96)}
+.choice.correct{background:#12321f;border-color:var(--green);color:var(--green)}
+.choice.wrong{background:#3a1622;border-color:var(--coral);color:var(--coral)}
+.choice.reveal{border-color:var(--green);color:var(--green)}
+.choice:disabled{cursor:default}
+.type-row{display:flex;gap:10px}
+.type-row input{flex:1;background:#0a1a3a;border:2px solid var(--line);border-radius:14px;padding:14px 16px;font-family:'Nunito';font-weight:900;font-size:20px;color:var(--ink);outline:none;min-width:0}
+.type-row input:focus{border-color:var(--cyan)}
+.type-row button{font-family:'Bungee';background:var(--cyan);color:#081430;border:none;border-radius:14px;padding:0 22px;font-size:15px;cursor:pointer}
+.feedback{margin-top:16px;border-radius:14px;padding:14px 16px;font-weight:700;font-size:15px;display:none;animation:pop .25s}
+@keyframes pop{from{transform:scale(.9);opacity:0}}
+.feedback.ok{display:block;background:#12321f;border:1px solid var(--green)}
+.feedback.no{display:block;background:#3a1622;border:1px solid var(--coral)}
+.feedback .fb-head{font-family:'Bungee';font-size:15px;margin-bottom:4px}
+.feedback.ok .fb-head{color:var(--green)}
+.feedback.no .fb-head{color:var(--coral)}
+.feedback .explain{color:var(--ink-dim);font-size:14px;line-height:1.5}
+.next-btn{margin-top:14px;width:100%;font-family:'Bungee';font-size:16px;background:var(--panel-hi);color:var(--ink);border:2px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;display:none}
+.next-btn.show{display:block}
+.next-btn:hover{border-color:var(--cyan)}
+.timer-ring{width:40px;height:40px;position:relative;flex-shrink:0}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring .tv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bungee';font-size:13px;color:var(--cyan)}
+
+/* ---------- results ---------- */
+.results{text-align:center;padding:26px 18px}
+.results .owl-big{font-size:64px;display:block;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.results h2{color:var(--gold);font-size:24px;margin:10px 0 4px}
+.results .msg{color:var(--ink-dim);font-weight:700;margin-bottom:18px}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.res-cell{background:#0a1a3a;border:1px solid var(--line);border-radius:14px;padding:12px}
+.res-cell .v{font-family:'Bungee';font-size:22px;color:var(--cyan)}
+.res-cell .v.g{color:var(--gold)}.res-cell .v.gr{color:var(--green)}
+.res-cell .l{font-size:10px;font-weight:900;color:var(--ink-dim);text-transform:uppercase;letter-spacing:1px}
+.delta-list{text-align:left;margin-bottom:18px}
+.delta-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #1a2f5c;font-weight:800;font-size:14px}
+.delta-row .d{margin-left:auto;font-family:'Bungee';font-size:13px}
+.delta-row .d.up{color:var(--green)}.delta-row .d.dn{color:var(--coral)}
+
+/* ---------- parent ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--ink-dim);font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:8px 6px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid #1a2f5c;font-weight:700}
+td .spark{vertical-align:middle}
+.pill{display:inline-block;border-radius:10px;padding:2px 9px;font-size:11px;font-weight:900}
+.pill.weak{background:#3a1622;color:var(--coral)}
+.pill.ok{background:#0e2a4d;color:var(--cyan)}
+.pill.strong{background:#12321f;color:var(--green)}
+.parent-note{background:#0a1a3a;border:1px solid var(--line);border-radius:14px;padding:14px;font-size:14px;line-height:1.6;color:var(--ink-dim);margin-top:12px}
+.parent-note b{color:var(--ink)}
+.tool-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tool-row button{background:var(--panel-hi);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:900;font-size:13px;cursor:pointer}
+.tool-row button.danger{color:var(--coral);border-color:#5c2735}
+.slip-item{font-size:13px;padding:7px 4px;border-bottom:1px solid #1a2f5c;color:var(--ink-dim)}
+.slip-item b{color:var(--coral)} .slip-item i{color:var(--green);font-style:normal}
+
+/* ---------- misc ---------- */
+.hidden{display:none!important}
+.badge-row{display:flex;gap:8px;flex-wrap:wrap}
+.badge{background:#0a1a3a;border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-align:center;min-width:76px;opacity:.35}
+.badge.won{opacity:1;border-color:var(--gold-dim);box-shadow:0 0 12px #ffc84520}
+.badge .bi{font-size:24px}.badge .bn{font-size:10px;font-weight:900;color:var(--ink-dim);margin-top:3px}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--gold);color:#081430;font-family:'Bungee';font-size:14px;padding:12px 22px;border-radius:14px;z-index:99;transition:.35s cubic-bezier(.6,0,.2,1.4);box-shadow:0 8px 24px #00000060}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ---------- family PIN gate ---------- */
+#pinGate{position:fixed;inset:0;z-index:200;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;padding:20px}
+.pin-card{background:var(--panel);border:1px solid var(--gold-dim);border-radius:22px;padding:34px 28px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 40px #ffc84518}
+.pin-card .owl{font-size:56px;display:block;margin-bottom:8px}
+.pin-card h2{font-family:'Bungee';color:var(--gold);font-size:20px;margin-bottom:4px}
+.pin-card p{color:var(--ink-dim);font-size:13px;font-weight:700;margin-bottom:18px}
+.pin-card input{width:100%;background:#0a1a3a;border:2px solid var(--line);border-radius:14px;padding:14px;font-family:'Bungee';font-size:26px;letter-spacing:14px;text-align:center;color:var(--gold);outline:none}
+.pin-card input:focus{border-color:var(--cyan)}
+.pin-card button{margin-top:14px;width:100%;font-family:'Bungee';font-size:16px;color:#081430;background:linear-gradient(180deg,#ffd970,var(--gold) 60%,#eab02c);border:none;border-radius:14px;padding:14px;cursor:pointer;box-shadow:0 4px 0 #a87c1c}
+.pin-card button:active{transform:translateY(3px);box-shadow:0 1px 0 #a87c1c}
+.pin-card.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+@media(max-width:520px){.head-stats .stat-chip{min-width:54px;padding:6px 8px}.choices{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast">+10 XP</div>
+
+<div id="pinGate">
+  <div class="pin-card" id="pinCard">
+    <span class="owl">🦉</span>
+    <h2>FAMILY LOCK</h2>
+    <p>Enter the family PIN to open Owl Academy</p>
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+    <button onclick="tryPin()">UNLOCK</button>
+  </div>
+</div>
+
+<div class="app">
+
+<header>
+  <div class="owl-badge">🦉</div>
+  <div class="head-txt">
+    <h1>OWL ACADEMY</h1>
+    <p id="headSub">Henry's MGS Training HQ</p>
+  </div>
+  <div class="head-stats">
+    <div class="stat-chip"><div class="v" id="statStreak">0</div><div class="l">🔥 streak</div></div>
+    <div class="stat-chip gold"><div class="v" id="statXP">0</div><div class="l">⭐ xp</div></div>
+  </div>
+</header>
+
+<!-- ============ HOME ============ -->
+<div id="view-home">
+  <div class="card glow launch">
+    <h2 id="launchTitle">TODAY'S MISSION</h2>
+    <p class="sub" id="launchSub">About 20 questions · picked just for you</p>
+    <button class="big-btn" id="btnMission" onclick="startMission()">🚀 START MISSION</button>
+  </div>
+
+  <div class="sec-title">Your Skill Belts</div>
+  <div class="skill-grid" id="skillGrid"></div>
+
+  <div class="sec-title">Trophy Shelf</div>
+  <div class="card"><div class="badge-row" id="badgeRow"></div></div>
+</div>
+
+<!-- ============ PRACTICE ============ -->
+<div id="view-practice" class="hidden">
+  <div class="sec-title">Free Training — pick a skill</div>
+  <div class="skill-grid" id="practiceGrid"></div>
+</div>
+
+<!-- ============ QUIZ ============ -->
+<div id="view-quiz" class="hidden">
+  <div class="quiz-top">
+    <button class="q-quit" onclick="quitQuiz()">✕</button>
+    <div class="q-progress"><i id="qBar" style="width:0%"></i></div>
+    <div class="q-count" id="qCount">1/20</div>
+    <div class="timer-ring hidden" id="timerRing">
+      <svg width="40" height="40"><circle cx="20" cy="20" r="16" fill="none" stroke="#25407a" stroke-width="4"/><circle id="timerArc" cx="20" cy="20" r="16" fill="none" stroke="#3ee0f0" stroke-width="4" stroke-linecap="round" stroke-dasharray="100.5" stroke-dashoffset="0"/></svg>
+      <div class="tv" id="timerVal">10</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="q-tag" id="qTag">⚡ Times Tables</div>
+    <div class="q-text" id="qText"></div>
+    <div id="qAnswerArea"></div>
+    <div class="feedback" id="qFeedback"></div>
+    <button class="next-btn" id="qNext" onclick="nextQuestion()">NEXT ▸</button>
+  </div>
+</div>
+
+<!-- ============ RESULTS ============ -->
+<div id="view-results" class="hidden">
+  <div class="card glow results">
+    <span class="owl-big">🦉</span>
+    <h2 id="resTitle">MISSION COMPLETE!</h2>
+    <p class="msg" id="resMsg"></p>
+    <div class="res-grid">
+      <div class="res-cell"><div class="v gr" id="resScore">0/0</div><div class="l">correct</div></div>
+      <div class="res-cell"><div class="v g" id="resXP">+0</div><div class="l">xp earned</div></div>
+      <div class="res-cell"><div class="v" id="resTime">0m</div><div class="l">time</div></div>
+    </div>
+    <div class="sec-title" style="margin-top:4px">Power Changes</div>
+    <div class="delta-list" id="resDeltas"></div>
+    <button class="big-btn done" onclick="goHome()">🏠 BACK TO HQ</button>
+  </div>
+</div>
+
+<!-- ============ PARENT ============ -->
+<div id="view-parent" class="hidden">
+  <div class="card">
+    <div class="sec-title" style="margin-top:0">Grown-Ups' Dashboard</div>
+    <div class="res-grid">
+      <div class="res-cell"><div class="v" id="pMissions">0</div><div class="l">missions</div></div>
+      <div class="res-cell"><div class="v gr" id="pAcc">–</div><div class="l">7-day accuracy</div></div>
+      <div class="res-cell"><div class="v g" id="pMins">0m</div><div class="l">total time</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Skill</th><th>Power</th><th>Trend</th><th>Accuracy</th><th></th></tr></thead>
+      <tbody id="pTable"></tbody>
+    </table>
+    <div class="parent-note" id="pAdvice"></div>
+    <div class="sec-title">Recent slips (what to chat about)</div>
+    <div id="pSlips"></div>
+    <div class="sec-title">Auto-Coach — self-improving question bank</div>
+    <div id="coachBox"></div>
+    <div class="sec-title">Data</div>
+    <div class="tool-row">
+      <button onclick="exportData()">⬇ Export progress</button>
+      <button onclick="importData()">⬆ Import</button>
+      <button class="danger" onclick="resetData()">Reset all data</button>
+    </div>
+    <div class="parent-note" style="margin-top:10px">
+      <b>How it works:</b> every answer updates a per-skill "power" rating (an Elo engine — the same maths chess ratings use).
+      Questions are auto-pitched so Henry succeeds about 7 times in 10 — hard enough to stretch, easy enough to stay fun.
+      Missed questions come back after 1, 3 and 7 days (spaced repetition); questions he beats 3 times in a row are retired.
+      Daily missions automatically focus on his two weakest skills, and Auto-Coach writes brand-new questions aimed at his
+      mistakes as he progresses — so the app keeps up with him all summer.
+    </div>
+  </div>
+</div>
+
+</div>
+
+<nav>
+  <button id="nav-home" class="on" onclick="showView('home')"><span class="ic">🏠</span>HQ</button>
+  <button id="nav-practice" onclick="showView('practice')"><span class="ic">🎯</span>Practice</button>
+  <button id="nav-parent" onclick="showView('parent')"><span class="ic">📊</span>Grown-Ups</button>
+</nav>
+
+<script>
+'use strict';
+/* =====================================================================
+   OWL ACADEMY — adaptive learning engine for Henry (Year 4, MGS 2026)
+   - Elo rating per skill; question difficulty targeted at ~72% success
+   - Spaced repetition of missed items (1/3/7 days)
+   - Daily mission = warm-up sprint + weakest-skill focus + review + boss
+   ===================================================================== */
+
+/* ---------- utilities ---------- */
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[ri(0,a.length-1)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const today=()=>new Date().toISOString().slice(0,10);
+const norm=s=>String(s).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+function uniqueChoices(ans,gen,n=4){const s=new Set([String(ans)]);let guard=0;while(s.size<n&&guard++<200){s.add(String(gen()));}return shuffle([...s]);}
+function frac(n,d){return `<span class="frac"><b>${n}</b><span>${d}</span></span>`;}
+
+/* ---------- audio blips ---------- */
+let AC=null;
+function blip(good){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.type='triangle';g.gain.setValueAtTime(.08,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.25);if(good){o.frequency.setValueAtTime(660,AC.currentTime);o.frequency.setValueAtTime(880,AC.currentTime+.09);}else{o.frequency.setValueAtTime(220,AC.currentTime);o.frequency.setValueAtTime(180,AC.currentTime+.12);}o.start();o.stop(AC.currentTime+.28);}catch(e){}}
+
+/* ---------- skill definitions ---------- */
+const STRANDS=[
+ {id:'tt',   name:'Times Tables',        icon:'⚡'},
+ {id:'num',  name:'Number Ninja',        icon:'🔢'},
+ {id:'frac', name:'Fractions & Decimals',icon:'🍕'},
+ {id:'meas', name:'Time, Money & Measures', icon:'📏'},
+ {id:'word', name:'Problem Solving',     icon:'🧩'},
+ {id:'spell',name:'Spelling & Grammar',  icon:'✍️'},
+ {id:'vocab',name:'Word Power',          icon:'📚'},
+ {id:'vr',   name:'Reasoning Lab',       icon:'🧠'},
+ {id:'fr',   name:'French Mission',      icon:'🥐'},
+];
+const RANKS=[[0,'Bronze','r0'],[1100,'Silver','r1'],[1300,'Gold','r2'],[1500,'Platinum','r3'],[1700,'Owl Elite','r4']];
+function rankOf(r){let out=RANKS[0];for(const k of RANKS)if(r>=k[0])out=k;return out;}
+
+/* ---------- state ---------- */
+const KEY='owlAcademy.v1';
+function freshState(){
+  const skills={};
+  for(const s of STRANDS)skills[s.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
+  return {name:'Henry',xp:0,streak:0,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
+    extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
+    coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0}};
+}
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||freshState();}catch(e){S=freshState();}
+// migrate-safe: ensure all strands + newer fields exist
+for(const st of STRANDS)if(!S.skills[st.id])S.skills[st.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
+if(!S.extra)S.extra={spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]};
+if(!S.mastered)S.mastered={};
+if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+
+/* ---------- Elo engine ---------- */
+const TARGET_GAP=164;          // rating gap giving ~72% expected success
+function expected(r,d){return 1/(1+Math.pow(10,(d-r)/400));}
+function levelFor(skill){       // map rating -> generator level 1..10
+  const r=S.skills[skill].rating;
+  return Math.max(1,Math.min(10,Math.round((r-800)/80)));
+}
+function targetDifficulty(skill){
+  return S.skills[skill].rating-TARGET_GAP+ri(-70,70);
+}
+function applyResult(skill,itemD,correct){
+  const sk=S.skills[skill];
+  const K=sk.attempts<20?40:24;
+  const delta=Math.round(K*((correct?1:0)-expected(sk.rating,itemD)));
+  sk.rating=Math.max(700,Math.min(2100,sk.rating+delta));
+  sk.attempts++;if(correct)sk.correct++;
+  sk.recent.push(correct?1:0);if(sk.recent.length>30)sk.recent.shift();
+  sk.history.push([Date.now(),sk.rating]);if(sk.history.length>240)sk.history.shift();
+  sk.lastSeen=today();
+  return delta;
+}
+
+/* =====================================================================
+   QUESTION GENERATORS  — each returns
+   {type:'mc'|'text', q, choices?, answer, explain, d (difficulty rating), skill}
+   L = level 1..10 derived from current rating
+   ===================================================================== */
+const dOf=L=>800+L*80+ri(-30,30);
+
+/* ---- Times Tables ---- */
+function genTT(L){
+  const pools=[[2,5,10],[2,3,4,5,10],[3,4,6,8],[4,6,7,8],[6,7,8,9],[6,7,8,9,11,12],[7,8,9,11,12],[7,8,9,11,12],[7,8,9,11,12],[7,8,9,11,12]];
+  const t=pick(pools[L-1]),m=ri(2,12);
+  const mode=L<=3?'mul':pick(['mul','mul','div','miss']);
+  if(mode==='mul')return{type:'text',q:`<span class="hl">${t} × ${m}</span> = ?`,answer:String(t*m),explain:`${t} × ${m} = ${t*m}`,d:dOf(L),skill:'tt'};
+  if(mode==='div')return{type:'text',q:`<span class="hl">${t*m} ÷ ${t}</span> = ?`,answer:String(m),explain:`${t} × ${m} = ${t*m}, so ${t*m} ÷ ${t} = ${m}`,d:dOf(L)+40,skill:'tt'};
+  return{type:'text',q:`${t} × <span class="hl">?</span> = ${t*m}`,answer:String(m),explain:`${t} × ${m} = ${t*m}`,d:dOf(L)+60,skill:'tt'};
+}
+
+/* ---- Number Ninja ---- */
+function genNumber(L){
+  const kind=pick(L<=3?['round','compare','add','sub','x10']:L<=6?['round','add','sub','x10','neg','roman','seq']:['add','sub','neg','roman','seq','x10big']);
+  if(kind==='round'){const n=ri(100,9999),to=pick(L<4?[10,100]:[10,100,1000]);const ans=Math.round(n/to)*to;
+    return{type:'text',q:`Round <span class="hl">${n}</span> to the nearest ${to}`,answer:String(ans),explain:`${n} is closer to ${ans} than to ${ans>n?ans-to:ans+to}.`,d:dOf(L),skill:'num'};}
+  if(kind==='compare'){const a=ri(1000,9999),b=ri(1000,9999);if(a===b)return genNumber(L);
+    return{type:'mc',q:`Which number is <span class="hl">bigger</span>?`,choices:shuffle([String(a),String(b)]),answer:String(Math.max(a,b)),explain:`Compare thousands first, then hundreds, tens, ones.`,d:dOf(L)-40,skill:'num'};}
+  if(kind==='add'){const a=ri(L*80,L*400+200),b=ri(L*60,L*300+100);
+    return{type:'text',q:`<span class="hl">${a} + ${b}</span> = ?`,answer:String(a+b),explain:`Line up the columns: ${a} + ${b} = ${a+b}.`,d:dOf(L),skill:'num'};}
+  if(kind==='sub'){let a=ri(L*100,L*400+300),b=ri(L*50,L*200+100);if(b>a)[a,b]=[b,a];
+    return{type:'text',q:`<span class="hl">${a} − ${b}</span> = ?`,answer:String(a-b),explain:`${a} − ${b} = ${a-b}. Check: ${a-b} + ${b} = ${a}.`,d:dOf(L)+20,skill:'num'};}
+  if(kind==='x10'){const n=ri(3,99),f=pick([10,100]);
+    return{type:'text',q:`<span class="hl">${n} × ${f}</span> = ?`,answer:String(n*f),explain:`Digits shift ${f===10?'one place':'two places'} to the left.`,d:dOf(L)-20,skill:'num'};}
+  if(kind==='x10big'){const n=ri(30,900),f=pick([10,100]);const mode=pick(['mul','div']);
+    if(mode==='div'&&n%f!==0)return genNumber(L);
+    return mode==='mul'
+      ?{type:'text',q:`<span class="hl">${n} × ${f}</span> = ?`,answer:String(n*f),explain:`Shift digits left.`,d:dOf(L),skill:'num'}
+      :{type:'text',q:`<span class="hl">${n} ÷ ${f}</span> = ?`,answer:String(n/f),explain:`Shift digits right.`,d:dOf(L),skill:'num'};}
+  if(kind==='neg'){const a=ri(1,9),drop=ri(a+1,a+9);
+    return{type:'text',q:`The temperature is <span class="hl">${a}°C</span>. It falls by <span class="hl">${drop}°C</span>. What is it now? (use −)`,answer:String(a-drop),explain:`Count back through zero: ${a} − ${drop} = ${a-drop}°C.`,d:dOf(L)+50,skill:'num'};}
+  if(kind==='roman'){const map=[[1,'I'],[4,'IV'],[5,'V'],[9,'IX'],[10,'X'],[40,'XL'],[50,'L'],[90,'XC'],[100,'C']];
+    const n=ri(2,100);let v=n,out='';for(let i=map.length-1;i>=0;i--){while(v>=map[i][0]){out+=map[i][1];v-=map[i][0];}}
+    return{type:'text',q:`What number is <span class="hl">${out}</span> in Roman numerals?`,answer:String(n),explain:`${out} = ${n}. (I=1, V=5, X=10, L=50, C=100)`,d:dOf(L)+40,skill:'num'};}
+  // seq
+  const start=ri(2,40),step=pick([6,7,8,9,25,50]),seq=[0,1,2,3].map(i=>start+i*step);
+  return{type:'text',q:`What comes next? <span class="hl">${seq.join(', ')}, …</span>`,answer:String(start+4*step),explain:`The pattern adds ${step} each time.`,d:dOf(L)+30,skill:'num'};
+}
+
+/* ---- Fractions & Decimals ---- */
+function genFractions(L){
+  const kind=pick(L<=3?['half','equiv','ofAmount']:L<=6?['equiv','ofAmount','dec','addf']:['equiv','ofAmount','dec','addf','cmp']);
+  if(kind==='half'){const d=pick([2,4]),n=d===2?ri(6,40)*2:ri(3,20)*4;
+    return{type:'text',q:`What is ${frac(1,d)} of <span class="hl">${n}</span>?`,answer:String(n/d),explain:`Divide ${n} by ${d}: ${n} ÷ ${d} = ${n/d}.`,d:dOf(L),skill:'frac'};}
+  if(kind==='equiv'){const b=pick([2,3,4,5]),t=pick([1,2,3].filter(x=>x<b)),m=ri(2,L<5?4:6);
+    return{type:'text',q:`Fill the gap: ${frac(t,b)} = ${frac('?',b*m)}`,answer:String(t*m),explain:`Multiply top and bottom by ${m}: ${t}×${m}=${t*m}, ${b}×${m}=${b*m}.`,d:dOf(L)+20,skill:'frac'};}
+  if(kind==='ofAmount'){const d=pick([3,4,5,8]),n=ri(2,d-1),base=d*ri(3,L+6);
+    return{type:'text',q:`What is ${frac(n,d)} of <span class="hl">${base}</span>?`,answer:String(base/d*n),explain:`${base} ÷ ${d} = ${base/d}, then × ${n} = ${base/d*n}.`,d:dOf(L)+50,skill:'frac'};}
+  if(kind==='dec'){const n=ri(1,9),h=ri(1,99);
+    return pick([true,false])
+     ?{type:'text',q:`Write ${frac(n,10)} as a decimal`,answer:'0.'+n,explain:`One tenth = 0.1, so ${n} tenths = 0.${n}.`,d:dOf(L),skill:'frac'}
+     :{type:'text',q:`Write ${frac(h,100)} as a decimal`,answer:(h/100).toFixed(2).replace(/0$/,'').replace(/\.$/,''),explain:`${h} hundredths = ${(h/100)}.`,d:dOf(L)+40,skill:'frac'};}
+  if(kind==='addf'){const d=pick([5,6,8,10,12]),a=ri(1,d-2),b=ri(1,d-a-1);
+    return{type:'mc',q:`${frac(a,d)} + ${frac(b,d)} = ?`,choices:uniqueChoices(`${a+b}/${d}`,()=>`${ri(1,d)}/${d}`),answer:`${a+b}/${d}`,explain:`Same bottom number — just add the tops: ${a}+${b}=${a+b}.`,d:dOf(L)+30,skill:'frac'};}
+  // cmp decimals
+  const x=(ri(10,99)/10).toFixed(1),y=(ri(100,999)/100).toFixed(2);
+  const ans=parseFloat(x)>parseFloat(y)?x:y; if(parseFloat(x)===parseFloat(y))return genFractions(L);
+  return{type:'mc',q:`Which is <span class="hl">bigger</span>?`,choices:shuffle([x,y]),answer:ans,explain:`Compare whole parts, then tenths, then hundredths.`,d:dOf(L)+50,skill:'frac'};
+}
+
+/* ---- Time, Money & Measures ---- */
+function genMeasures(L){
+  const kind=pick(L<=3?['conv','money','time24']:L<=6?['conv','money','time24','elapse','perim']:['conv','money','elapse','perim','area']);
+  if(kind==='conv'){const c=pick([['km','m',1000],['m','cm',100],['cm','mm',10],['kg','g',1000],['litres','ml',1000]]);
+    const n=L<5?ri(2,9):pick([ri(2,9),ri(2,9)+0.5]);
+    return{type:'text',q:`<span class="hl">${n} ${c[0]}</span> = ? ${c[1]}`,answer:String(n*c[2]),explain:`1 ${c[0]} = ${c[2]} ${c[1]}, so ${n} ${c[0]} = ${n*c[2]} ${c[1]}.`,d:dOf(L),skill:'meas'};}
+  if(kind==='money'){const price=ri(1,L<5?39:89)*10+pick([5,9,0]),paid=price<=500?500:1000;
+    return{type:'text',q:`A comic costs <span class="hl">£${(price/100).toFixed(2)}</span>. You pay with a £${paid/100} note. How much change? (like 2.35)`,answer:((paid-price)/100).toFixed(2),explain:`£${(paid/100).toFixed(2)} − £${(price/100).toFixed(2)} = £${((paid-price)/100).toFixed(2)}.`,d:dOf(L)+30,skill:'meas'};}
+  if(kind==='time24'){const h=ri(13,23),m=pick(['00','15','30','45']);
+    return{type:'mc',q:`What is <span class="hl">${h}:${m}</span> on a 12-hour clock?`,choices:uniqueChoices(`${h-12}:${m} pm`,()=>`${ri(1,11)}:${m} ${pick(['am','pm'])}`),answer:`${h-12}:${m} pm`,explain:`After 12:59, subtract 12 and say "pm": ${h} − 12 = ${h-12}.`,d:dOf(L),skill:'meas'};}
+  if(kind==='elapse'){const h1=ri(8,11),m1=pick([0,15,30,45]),durH=ri(1,2),durM=pick([15,30,45]);
+    let h2=h1+durH,m2=m1+durM;if(m2>=60){m2-=60;h2++;}
+    const fmt=(h,m)=>`${h}:${String(m).padStart(2,'0')}`;
+    return{type:'text',q:`A film starts at <span class="hl">${fmt(h1,m1)}</span> and lasts <span class="hl">${durH}h ${durM}min</span>. When does it end? (like 11:45)`,answer:fmt(h2,m2),explain:`Add the hours first (${h1+durH}:${String(m1).padStart(2,'0')}), then the minutes.`,d:dOf(L)+60,skill:'meas'};}
+  if(kind==='perim'){const w=ri(3,12),h=ri(3,12);
+    return{type:'text',q:`A rectangle is <span class="hl">${w} cm</span> long and <span class="hl">${h} cm</span> wide. What is its <span class="hl">perimeter</span> in cm?`,answer:String(2*(w+h)),explain:`Perimeter = 2 × (${w} + ${h}) = ${2*(w+h)} cm.`,d:dOf(L)+20,skill:'meas'};}
+  const w=ri(3,12),h=ri(2,9);
+  return{type:'text',q:`A rectangle is <span class="hl">${w} cm</span> by <span class="hl">${h} cm</span>. What is its <span class="hl">area</span> in cm²?`,answer:String(w*h),explain:`Area = length × width = ${w} × ${h} = ${w*h} cm².`,d:dOf(L)+40,skill:'meas'};
+}
+
+/* ---- Problem Solving (2-step word problems) ---- */
+const NAMES=['Henry','Oliver','Amelia','Zach','Priya','Leo','Sofia','Jack','Musa','Evie'];
+function genWordProb(L){
+  const t=ri(1,6),n1=pick(NAMES),n2=pick(NAMES.filter(x=>x!==n1));
+  if(t===1){const packs=ri(3,4+Math.floor(L/2)),per=pick([6,8,12]),eat=ri(2,per);
+    return{type:'text',q:`${n1} buys <span class="hl">${packs} packs</span> of stickers with <span class="hl">${per}</span> in each pack, then gives away <span class="hl">${eat}</span>. How many are left?`,answer:String(packs*per-eat),explain:`${packs} × ${per} = ${packs*per}, then − ${eat} = ${packs*per-eat}.`,d:dOf(L)+60,skill:'word'};}
+  if(t===2){const each=ri(3,9),kids=ri(3,6),total=each*kids+ri(1,each-1);
+    return{type:'text',q:`${kids} friends share <span class="hl">${total} sweets</span> as equally as possible. How many are <span class="hl">left over</span>?`,answer:String(total%kids),explain:`${kids} × ${Math.floor(total/kids)} = ${kids*Math.floor(total/kids)}, so ${total%kids} left over.`,d:dOf(L)+80,skill:'word'};}
+  if(t===3){const a=ri(15,60)*10,b=ri(5,30)*10;
+    return{type:'text',q:`${n1} has <span class="hl">${a}p</span> and ${n2} has <span class="hl">${b}p</span>. How much do they have <span class="hl">altogether</span>, in pence?`,answer:String(a+b),explain:`${a} + ${b} = ${a+b}p (that's £${((a+b)/100).toFixed(2)}).`,d:dOf(L)+20,skill:'word'};}
+  if(t===4){const bus=ri(24,48),off=ri(5,15),on=ri(3,12);
+    return{type:'text',q:`A bus has <span class="hl">${bus} people</span>. At the stop, <span class="hl">${off} get off</span> and <span class="hl">${on} get on</span>. How many now?`,answer:String(bus-off+on),explain:`${bus} − ${off} = ${bus-off}, then + ${on} = ${bus-off+on}.`,d:dOf(L)+30,skill:'word'};}
+  if(t===5){const price=ri(2,9),qty=ri(3,7),pay=Math.ceil(price*qty/10)*10+10;
+    return{type:'text',q:`Pencils cost <span class="hl">£${price}</span> each. ${n1} buys <span class="hl">${qty}</span> and pays with <span class="hl">£${pay}</span>. How much change, in £?`,answer:String(pay-price*qty),explain:`${qty} × £${price} = £${price*qty}; £${pay} − £${price*qty} = £${pay-price*qty}.`,d:dOf(L)+70,skill:'word'};}
+  const laps=ri(4,9),metres=pick([25,50,100]);
+  return{type:'text',q:`${n1} swims <span class="hl">${laps} lengths</span> of a <span class="hl">${metres} m</span> pool. How far in metres?`,answer:String(laps*metres),explain:`${laps} × ${metres} = ${laps*metres} m.`,d:dOf(L)+40,skill:'word'};
+}
+
+/* ---- Spelling & Grammar (authored banks) ---- */
+const SPELL=[ // [correct, wrong1, wrong2, diff 1-5]
+ ['because','becuase','becouse',1],['friend','freind','frend',1],['heard','herd','heared',2],
+ ['believe','beleive','belive',3],['different','diffrent','diferent',2],['separate','seperate','separete',4],
+ ['February','Febuary','Feburary',4],['favourite','favorite','faverite',2],['knowledge','nowledge','knowlege',4],
+ ['surprise','suprise','serprise',3],['probably','probly','probaly',3],['calendar','calender','calandar',4],
+ ['disappear','dissapear','disapear',4],['occasionally','occassionally','ocasionally',5],['possession','posession','possesion',5],
+ ['minute','minit','minnute',2],['quarter','quater','qwarter',3],['straight','strait','straght',3],
+ ['strength','strenght','strengh',3],['thought','thort','thaught',2],['through','threw','throught',2],
+ ['weight','wieght','wait',3],['island','iland','isleand',3],['answer','anser','ansewer',2],
+ ['library','libary','liberry',3],['naughty','norty','naughtey',2],['peculiar','peculier','perculiar',5],
+ ['ordinary','ordinery','ordinry',4],['important','importent','importint',2],['exercise','excercise','exersize',4],
+ ['medicine','medecine','medisine',4],['remember','rember','remembor',1],['sentence','sentance','sentense',2],
+ ['certain','certin','sertain',3],['centre','center','centere',2],['circle','circel','sircle',1],
+ ['decide','deside','decid',2],['imagine','imagin','immagine',3],['increase','incrase','increese',3],
+ ['promise','promiss','promice',2],['purpose','purpos','perpose',3],['question','queston','questian',1],
+ ['regular','reguler','regulur',3],['special','speshal','specail',2],['therefore','therefor','thearfore',4],
+];
+const GRAMMAR=[ // [question, correct, [wrongs], explain, diff]
+ [`Which word is the <span class="hl">verb</span>? "The dog <b>chased</b> the red ball."`,'chased',['dog','red','ball'],'A verb is a doing word — "chased" is what the dog did.',1],
+ [`Which word is the <span class="hl">adjective</span>? "The enormous owl blinked slowly."`,'enormous',['owl','blinked','slowly'],'An adjective describes a noun — "enormous" describes the owl.',2],
+ [`Which word is the <span class="hl">adverb</span>? "The enormous owl blinked slowly."`,'slowly',['enormous','owl','blinked'],'An adverb describes HOW something is done — blinked how? Slowly.',3],
+ [`Pick the correct word: "<span class="hl">___</span> going to the park later."`,`They're`,['Their','There'],`"They're" = "they are". Their = belonging to them. There = a place.`,3],
+ [`Pick the correct word: "Put the books over <span class="hl">___</span>."`,'there',[`they're`,'their'],'"There" means a place.',2],
+ [`Pick the correct word: "That is <span class="hl">___</span> football."`,'their',['there',`they're`],'"Their" shows it belongs to them.',2],
+ [`Pick the correct word: "It is <span class="hl">___</span> hot to play outside."`,'too',['to','two'],'"Too" means "more than enough". Two = 2. To = towards.',2],
+ [`Which sentence uses the apostrophe <span class="hl">correctly</span>?`,`The boy's coat is blue.`,[`The boys coat's is blue.`,`The boy's coat's is blue.`],`The coat belongs to the boy → boy's.`,4],
+ [`Which sentence needs a comma after the <span class="hl">fronted adverbial</span>?`,`After lunch, we played cricket.`,[`We played, cricket after lunch.`,`We, played cricket after lunch.`],`A fronted adverbial ("After lunch") is followed by a comma.`,4],
+ [`Which is the <span class="hl">noun</span>? "Manchester is a busy city."`,'city',['busy','is','a'],`A noun names a thing or place — "city" (and "Manchester"!).`,1],
+ [`What is the <span class="hl">plural</span> of "child"?`,'children',['childs','childes'],`Some plurals are irregular: child → children.`,2],
+ [`What is the <span class="hl">plural</span> of "potato"?`,'potatoes',['potatos','potatoies'],`Words ending in -o often add -es: potatoes.`,3],
+ [`Pick the correct word: "Yesterday I <span class="hl">___</span> my bike to school."`,'rode',['rided','ride'],'The past tense of ride is rode (irregular verb).',2],
+ [`Pick the correct word: "We <span class="hl">___</span> seen that film already."`,'have',['of','has'],`"We have seen" — never "would of / we of"!`,3],
+];
+/* ---- merged banks (built-in + Auto-Coach extras) with mastery retirement ---- */
+const BANK_KEY={spell:0,gram:1,syn:0,ant:0,fr:0,odd:1};   // index of the item's identity field
+const BANK_DIFF={spell:3,gram:4,syn:3,ant:3,fr:2,odd:3};  // index of the difficulty tag
+function mergedBank(cat){
+  const base={spell:SPELL,gram:GRAMMAR,syn:SYN,ant:ANT,fr:FR_WORDS,odd:ODD}[cat];
+  return base.concat(S.extra&&S.extra[cat]?S.extra[cat]:[]);
+}
+function isRetired(bankId){const m=S.mastered[bankId];return !!(m&&m.streak>=3);}
+function pickBank(cat,prefix,L){
+  const all=mergedBank(cat),ki=BANK_KEY[cat],di=BANK_DIFF[cat];
+  let cands=all.filter(w=>!isRetired(prefix+w[ki])&&Math.abs(w[di]*2-L)<=3);
+  if(!cands.length)cands=all.filter(w=>!isRetired(prefix+w[ki]));
+  if(!cands.length)cands=all;               // everything mastered — recycle
+  return pick(cands);
+}
+function activeCount(cat,prefix){const ki=BANK_KEY[cat];return mergedBank(cat).filter(w=>!isRetired(prefix+w[ki])).length;}
+
+function genSpelling(L){
+  if(Math.random()<0.6){
+    const w=pickBank('spell','sp:',L);
+    return{type:'mc',q:`Which spelling is <span class="hl">correct</span>?`,choices:shuffle([w[0],w[1],w[2]]),answer:w[0],explain:`✔ ${w[0]}`,d:900+w[3]*140+ri(-30,30),skill:'spell',bankId:'sp:'+w[0]};
+  }
+  const g=pickBank('gram','gr:',L);
+  return{type:'mc',q:g[0],choices:shuffle([g[1],...g[2]]),answer:g[1],explain:g[3],d:900+g[4]*140+ri(-30,30),skill:'spell',bankId:'gr:'+g[1]};
+}
+
+/* ---- Word Power (vocabulary) ---- */
+const SYN=[ // [word, synonym, [wrongs], diff]
+ ['rapid','quick',['slow','loud','heavy'],2],['begin','start',['finish','stay','sleep'],1],
+ ['furious','angry',['happy','tired','hungry'],2],['enormous','huge',['tiny','round','soft'],1],
+ ['fatigued','tired',['excited','scared','strong'],4],['peculiar','strange',['normal','pretty','loud'],3],
+ ['abundant','plentiful',['scarce','broken','narrow'],5],['commence','begin',['end','pause','carry'],4],
+ ['courageous','brave',['afraid','clever','quiet'],2],['ancient','very old',['brand new','shiny','tall'],2],
+ ['fragile','easily broken',['very strong','heavy','sticky'],3],['drenched','soaking wet',['bone dry','warm','muddy'],3],
+ ['famished','very hungry',['completely full','sleepy','angry'],4],['gleaming','shining',['dull','dirty','dark'],3],
+ ['reluctant','unwilling',['eager','cheerful','careless'],5],['swift','fast',['slow','tall','late'],2],
+ ['vacant','empty',['full','locked','bright'],4],['weary','tired',['lively','angry','brave'],3],
+ ['jubilant','overjoyed',['miserable','nervous','bored'],5],['inquisitive','curious',['bored','rude','silent'],4],
+ ['transparent','see-through',['solid','colourful','wooden'],4],['perilous','dangerous',['safe','boring','easy'],5],
+];
+const ANT=[ // [word, antonym, [wrongs], diff]
+ ['expand','shrink',['grow','stretch','open'],4],['victory','defeat',['win','prize','battle'],3],
+ ['generous','selfish',['kind','rich','giving'],3],['ancient','modern',['old','dusty','broken'],3],
+ ['brave','cowardly',['bold','strong','daring'],2],['noisy','silent',['loud','busy','crowded'],1],
+ ['smooth','rough',['soft','flat','shiny'],2],['artificial','natural',['fake','plastic','pretend'],4],
+];
+function genVocab(L){
+  const useAnt=Math.random()<0.3;
+  const w=useAnt?pickBank('ant','an:',L):pickBank('syn','sy:',L);
+  const q=useAnt?`Which word means the <span class="hl">OPPOSITE</span> of "<span class="hl">${w[0]}</span>"?`
+               :`Which word means the <span class="hl">same</span> as "<span class="hl">${w[0]}</span>"?`;
+  return{type:'mc',q,choices:shuffle([w[1],...w[2]]),answer:w[1],explain:`"${w[0]}" ${useAnt?'is the opposite of':'means'} "${w[1]}".`,d:900+w[3]*140+ri(-30,30),skill:'vocab',bankId:(useAnt?'an:':'sy:')+w[0]};
+}
+
+/* ---- Reasoning Lab ---- */
+const ALPHA='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ODD=[ // [options, answer, why, diff]
+ [['apple','banana','carrot','cherry'],'carrot','A carrot is a vegetable; the others are fruits.',1],
+ [['triangle','square','circle','pentagon'],'circle','A circle has no straight sides.',2],
+ [['run','jump','swim','chair'],'chair','"Chair" is a thing (noun); the others are actions.',1],
+ [['12','18','24','35'],'35','35 is the only one NOT in the 6 times table.',3],
+ [['gold','silver','iron','ruby'],'ruby','A ruby is a gemstone; the others are metals.',3],
+ [['France','Spain','Paris','Italy'],'Paris','Paris is a city; the others are countries.',2],
+ [['whale','shark','dolphin','seal'],'shark','A shark is a fish; the others are mammals.',4],
+ [['16','25','36','48'],'48','48 is not a square number (16=4², 25=5², 36=6²).',5],
+];
+function genReasoning(L){
+  const kind=pick(L<=3?['seq','odd','code']:L<=6?['seq','odd','code','lettseq','numseq']:['code','lettseq','numseq','odd','logic']);
+  if(kind==='seq'){const icons=pick([['🔵','🔺'],['⭐','🌙'],['🟩','🟨']]);const n=ri(2,3);
+    let s='';for(let i=0;i<4;i++)s+=(i%n===n-1?icons[1]:icons[0]);
+    const ans=(4%n===n-1)?icons[1]:icons[0];
+    return{type:'mc',q:`What comes <span class="hl">next</span> in the pattern?<br><span style="font-size:1.5em;letter-spacing:6px">${s} ?</span>`,choices:shuffle([icons[0],icons[1]]),answer:ans,explain:`The pattern repeats every ${n} shapes.`,d:dOf(L)-40,skill:'vr'};}
+  if(kind==='odd'){const o=pickBank('odd','odd:',L);
+    return{type:'mc',q:`Which is the <span class="hl">odd one out</span>?`,choices:shuffle(o[0].slice()),answer:o[1],explain:o[2],d:900+o[3]*140+ri(-30,30),skill:'vr',bankId:'odd:'+o[1]};}
+  if(kind==='code'){const shift=L<5?1:ri(1,2);const words=['CAT','DOG','SUN','OWL','BUS','MAP','PEN','FOX'];
+    const w=pick(words),w2=pick(words.filter(x=>x!==w));
+    const enc=s=>s.split('').map(c=>ALPHA[(ALPHA.indexOf(c)+shift)%26]).join('');
+    return{type:'text',q:`Secret code! If <span class="hl">${w}</span> is written <span class="hl">${enc(w)}</span>, how is <span class="hl">${w2}</span> written?`,answer:enc(w2),explain:`Each letter moves ${shift} step${shift>1?'s':''} forward in the alphabet.`,d:dOf(L)+60,skill:'vr'};}
+  if(kind==='lettseq'){const start=ri(0,10),step=ri(1,3);
+    const seq=[0,1,2,3].map(i=>ALPHA[start+i*step]);
+    return{type:'text',q:`Which letter comes next? <span class="hl">${seq.join(', ')}, …</span>`,answer:ALPHA[start+4*step],explain:`Jump ${step} letter${step>1?'s':''} each time.`,d:dOf(L)+40,skill:'vr'};}
+  if(kind==='numseq'){const kind2=pick(['x2','sq','alt']);
+    if(kind2==='x2'){const s=ri(2,5),seq=[s,s*2,s*4,s*8];
+      return{type:'text',q:`What comes next? <span class="hl">${seq.join(', ')}, …</span>`,answer:String(s*16),explain:`Each number doubles.`,d:dOf(L)+50,skill:'vr'};}
+    if(kind2==='sq'){const seq=[1,4,9,16];
+      return{type:'text',q:`What comes next? <span class="hl">${seq.join(', ')}, …</span>`,answer:'25',explain:`They are the square numbers: 1², 2², 3², 4², 5²=25.`,d:dOf(L)+80,skill:'vr'};}
+    const a=ri(2,6),b=ri(10,20),seq=[a,b,a*2,b,a*3];
+    return{type:'text',q:`What comes next? <span class="hl">${seq.join(', ')}, …</span>`,answer:String(b),explain:`Two patterns take turns: ${a},${a*2},${a*3}… and ${b},${b},${b}…`,d:dOf(L)+70,skill:'vr'};}
+  // logic mini-puzzle
+  const kids=shuffle(NAMES.slice(0,5)).slice(0,3);
+  return{type:'mc',q:`${kids[0]} is taller than ${kids[1]}. ${kids[1]} is taller than ${kids[2]}. Who is the <span class="hl">shortest</span>?`,choices:shuffle(kids.slice()),answer:kids[2],explain:`${kids[0]} > ${kids[1]} > ${kids[2]}, so ${kids[2]} is shortest.`,d:dOf(L)+60,skill:'vr'};
+}
+
+/* ---- French Mission (Year 4 = French at MGS) ---- */
+const FR_NUM=['un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf','vingt'];
+const FR_WORDS=[ // [french, english, diff]
+ ['bonjour','hello',1],['au revoir','goodbye',1],['merci','thank you',1],['oui','yes',1],['non','no',1],
+ ["s'il vous plaît",'please',2],['bonsoir','good evening',2],['salut','hi',1],
+ ['rouge','red',1],['bleu','blue',1],['vert','green',1],['jaune','yellow',2],['noir','black',2],
+ ['blanc','white',2],['orange','orange',1],['rose','pink',2],['gris','grey',3],['marron','brown',3],
+ ['le chien','the dog',2],['le chat','the cat',2],['le poisson','the fish',3],['l\'oiseau','the bird',3],
+ ['le lapin','the rabbit',3],['le cheval','the horse',4],['la souris','the mouse',4],
+ ['le livre','the book',3],['le crayon','the pencil',3],['l\'école','the school',3],['la maison','the house',3],
+ ['lundi','Monday',3],['mardi','Tuesday',3],['mercredi','Wednesday',4],['jeudi','Thursday',4],
+ ['vendredi','Friday',3],['samedi','Saturday',3],['dimanche','Sunday',4],
+ ['je m\'appelle Henry','my name is Henry',2],['j\'ai huit ans','I am eight years old',4],
+ ['comment ça va ?','how are you?',3],['très bien','very well',3],['le petit déjeuner','breakfast',5],
+];
+function genFrench(L){
+  if(Math.random()<0.3){ // numbers
+    const n=ri(1,Math.min(20,L*2+4));
+    return pick([true,false])
+     ?{type:'mc',q:`What number is "<span class="hl">${FR_NUM[n-1]}</span>" in French?`,choices:uniqueChoices(String(n),()=>String(ri(1,20))),answer:String(n),explain:`${FR_NUM[n-1]} = ${n}`,d:dOf(L),skill:'fr'}
+     :{type:'mc',q:`How do you say "<span class="hl">${n}</span>" in French?`,choices:uniqueChoices(FR_NUM[n-1],()=>FR_NUM[ri(0,19)]),answer:FR_NUM[n-1],explain:`${n} = ${FR_NUM[n-1]}`,d:dOf(L)+20,skill:'fr'};
+  }
+  const w=pickBank('fr','fr:',L);
+  const toEng=pick([true,false]);
+  const other=()=>pick(mergedBank('fr'))[toEng?1:0];
+  return toEng
+   ?{type:'mc',q:`What does "<span class="hl">${w[0]}</span>" mean?`,choices:uniqueChoices(w[1],other),answer:w[1],explain:`${w[0]} = ${w[1]}`,d:900+w[2]*140+ri(-30,30),skill:'fr',bankId:'fr:'+w[0]}
+   :{type:'mc',q:`How do you say "<span class="hl">${w[1]}</span>" in French?`,choices:uniqueChoices(w[0],other),answer:w[0],explain:`${w[1]} = ${w[0]}`,d:900+w[2]*140+ri(-30,30),skill:'fr',bankId:'fr:'+w[0]};
+}
+
+const GENS={tt:genTT,num:genNumber,frac:genFractions,meas:genMeasures,word:genWordProb,spell:genSpelling,vocab:genVocab,vr:genReasoning,fr:genFrench};
+
+/* generate a question for a skill near the target difficulty */
+function makeQuestion(skill,levelBoost=0){
+  const L=Math.max(1,Math.min(10,levelFor(skill)+levelBoost));
+  let q=GENS[skill](L),tries=0;
+  const tgt=targetDifficulty(skill)+levelBoost*80;
+  while(Math.abs(q.d-tgt)>200&&tries++<6)q=GENS[skill](L);
+  return q;
+}
+
+/* =====================================================================
+   MISSION BUILDER
+   ===================================================================== */
+let QUIZ=null;
+
+function weakestSkills(n){
+  return STRANDS.map(s=>s.id).sort((a,b)=>S.skills[a].rating-S.skills[b].rating).slice(0,n);
+}
+function dueFixit(){
+  const now=Date.now();
+  return S.fixit.filter(f=>f.due<=now);
+}
+function qKey(q){return q.bankId||q.q.replace(/<[^>]+>/g,'');}
+function makeFresh(skill,seen,boost=0){                 // no repeats within a mission
+  let q=makeQuestion(skill,boost),tries=0;
+  while(seen.has(qKey(q))&&tries++<12)q=makeQuestion(skill,boost);
+  seen.add(qKey(q));return q;
+}
+function buildMission(){
+  const qs=[],seen=new Set();
+  for(let i=0;i<5;i++){const q=makeFresh('tt',seen);q.sprint=true;qs.push(q);}         // warm-up sprint
+  const focus=STRANDS.map(s=>s.id).filter(id=>id!=='tt')                               // tt already warmed up
+    .sort((a,b)=>S.skills[a].rating-S.skills[b].rating).slice(0,2);
+  const rotating=pick(STRANDS.map(s=>s.id).filter(id=>!focus.includes(id)&&id!=='tt'));
+  for(const sk of [...focus,rotating])for(let i=0;i<4;i++)qs.push(makeFresh(sk,seen)); // 12 adaptive
+  const due=shuffle(dueFixit()).slice(0,2);
+  for(const f of due){qs.push({...f.q,review:true,fixRef:f});}                         // spaced review
+  while(qs.length<19)qs.push(makeFresh(pick(focus.concat(rotating)),seen));
+  const bossSkill=pick(focus);const boss=makeFresh(bossSkill,seen,2);boss.boss=true;qs.push(boss); // boss
+  return qs;
+}
+function startMission(){
+  QUIZ={qs:buildMission(),i:0,correct:0,xp:0,started:Date.now(),deltas:{},mission:true};
+  showView('quiz');renderQuestion();
+}
+function startPractice(skill){
+  const qs=[],seen=new Set();for(let i=0;i<10;i++)qs.push(makeFresh(skill,seen));
+  QUIZ={qs,i:0,correct:0,xp:0,started:Date.now(),deltas:{},mission:false,practiceSkill:skill};
+  showView('quiz');renderQuestion();
+}
+function quitQuiz(){if(confirm('Leave this mission? Progress on answered questions is saved.')){stopTimer();finishQuiz(true);}}
+
+/* =====================================================================
+   QUIZ UI
+   ===================================================================== */
+let timerInt=null,timerLeft=0,answered=false;
+
+function stopTimer(){if(timerInt){clearInterval(timerInt);timerInt=null;}$('timerRing').classList.add('hidden');}
+function startTimer(secs,onExpire){
+  timerLeft=secs;$('timerRing').classList.remove('hidden');
+  const arc=$('timerArc'),full=100.5;
+  const draw=()=>{$('timerVal').textContent=timerLeft;arc.style.strokeDashoffset=full*(1-timerLeft/secs);arc.style.stroke=timerLeft<=3?'#ff5d73':'#3ee0f0';};
+  draw();
+  timerInt=setInterval(()=>{timerLeft--;draw();if(timerLeft<=0){stopTimer();onExpire();}},1000);
+}
+
+function renderQuestion(){
+  const q=QUIZ.qs[QUIZ.i];answered=false;
+  $('qBar').style.width=(QUIZ.i/QUIZ.qs.length*100)+'%';
+  $('qCount').textContent=(QUIZ.i+1)+'/'+QUIZ.qs.length;
+  const strand=STRANDS.find(s=>s.id===q.skill);
+  const tag=$('qTag');
+  tag.className='q-tag'+(q.boss?' boss':'');
+  tag.innerHTML=q.boss?'👑 BOSS QUESTION — double XP!':q.review?'🔁 Fix-it review — '+strand.icon+' '+strand.name:q.sprint?'⚡ Sprint! Answer fast for bonus XP':strand.icon+' '+strand.name;
+  $('qText').innerHTML=q.q;
+  $('qFeedback').className='feedback';$('qFeedback').innerHTML='';
+  $('qNext').classList.remove('show');
+  const area=$('qAnswerArea');area.innerHTML='';
+  if(q.type==='mc'){
+    const div=document.createElement('div');
+    div.className='choices'+(q.choices.some(c=>String(c).length>18)?' one-col':'');
+    for(const c of q.choices){
+      const b=document.createElement('button');b.className='choice';b.innerHTML=c;
+      b.onclick=()=>submitAnswer(String(c),b);div.appendChild(b);
+    }
+    area.appendChild(div);
+  }else{
+    area.innerHTML=`<div class="type-row"><input id="qInput" autocomplete="off" autocapitalize="off" placeholder="Type your answer…"><button onclick="submitTyped()">GO</button></div>`;
+    const inp=$('qInput');
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')submitTyped();});
+    setTimeout(()=>inp.focus(),50);
+  }
+  stopTimer();
+  if(q.sprint)startTimer(10,()=>{if(!answered)submitAnswer('⌛ (out of time)',null);});
+}
+function submitTyped(){const v=$('qInput').value;if(v.trim()==='')return;submitAnswer(v,null);}
+
+function submitAnswer(given,btn){
+  if(answered)return;answered=true;stopTimer();
+  const q=QUIZ.qs[QUIZ.i];
+  const ok=norm(given)===norm(q.answer);
+  blip(ok);
+  // mastery tracking: 3 correct in a row retires a bank item (dataset self-prunes)
+  if(q.bankId){
+    const m=S.mastered[q.bankId]||(S.mastered[q.bankId]={streak:0,seen:0});
+    m.seen++;m.streak=ok?m.streak+1:0;
+  }
+  // Elo update
+  const delta=applyResult(q.skill,q.d,ok);
+  QUIZ.deltas[q.skill]=(QUIZ.deltas[q.skill]||0)+delta;
+  // XP
+  let gained=0;
+  if(ok){gained=q.boss?25:10;if(q.sprint&&timerLeft>=5)gained+=5;QUIZ.correct++;}
+  QUIZ.xp+=gained;S.xp+=gained;
+  if(gained)toast('+'+gained+' XP'+(q.boss?' 👑':q.sprint&&timerLeft>=5?' ⚡':''));
+  // fix-it queue
+  if(!ok){
+    S.slips.unshift({skill:q.skill,q:q.q.replace(/<[^>]+>/g,''),given:String(given),ans:String(q.answer),t:Date.now()});
+    if(S.slips.length>60)S.slips.pop();
+    if(!q.review){
+      S.fixit.push({q:{type:q.type,q:q.q,choices:q.choices?shuffle(q.choices):undefined,answer:q.answer,explain:q.explain,d:q.d,skill:q.skill},due:Date.now()+864e5,stage:0});
+      if(S.fixit.length>40)S.fixit.shift();
+    }
+  }
+  if(q.review&&q.fixRef){ // spaced repetition scheduling: 1d -> 3d -> 7d -> retire
+    const f=q.fixRef;
+    if(ok){f.stage=(f.stage||0)+1;if(f.stage>=3){S.fixit=S.fixit.filter(x=>x!==f);}else{f.due=Date.now()+[3,7][f.stage-1]*864e5;}}
+    else f.due=Date.now()+864e5;
+  }
+  save();
+  // UI feedback
+  if(btn){
+    document.querySelectorAll('.choice').forEach(b=>{
+      b.disabled=true;
+      if(norm(b.innerHTML)===norm(q.answer)||norm(b.textContent)===norm(q.answer))b.classList.add(btn===b&&!ok?'':'reveal');
+    });
+    btn.classList.add(ok?'correct':'wrong');
+  }else if($('qInput')){$('qInput').disabled=true;}
+  const fb=$('qFeedback');
+  fb.className='feedback '+(ok?'ok':'no');
+  fb.innerHTML=`<div class="fb-head">${ok?pick(['✔ CORRECT!','✔ NAILED IT!','✔ BRILLIANT!','✔ OWL-STANDING!']):'✖ NOT QUITE'}</div><div class="explain">${ok?q.explain:'The answer is <b style="color:var(--green)">'+q.answer+'</b>. '+q.explain+'<br>🔁 This one will come back tomorrow — you\'ll smash it!'}</div>`;
+  $('qNext').classList.add('show');
+  $('qNext').textContent=QUIZ.i===QUIZ.qs.length-1?'FINISH ✦':'NEXT ▸';
+  if(ok&&q.type==='mc'&&btn)btn.classList.add('correct');
+}
+function nextQuestion(){
+  QUIZ.i++;
+  if(QUIZ.i>=QUIZ.qs.length)finishQuiz(false);
+  else renderQuestion();
+}
+function finishQuiz(aborted){
+  const mins=Math.max(1,Math.round((Date.now()-QUIZ.started)/60000));
+  S.minutes+=mins;
+  const done=QUIZ.i+ (aborted?0:0);
+  if(QUIZ.mission&&!aborted){
+    S.missions++;
+    const t=today();
+    if(S.lastMission!==t){
+      const yest=new Date(Date.now()-864e5).toISOString().slice(0,10);
+      S.streak=(S.lastMission===yest)?S.streak+1:1;
+      S.lastMission=t;
+    }
+    S.log.push({t,correct:QUIZ.correct,total:QUIZ.qs.length,xp:QUIZ.xp,mins});
+    if(S.log.length>120)S.log.shift();
+    checkBadges();
+  }
+  save();
+  if(aborted){goHome();return;}
+  $('resScore').textContent=QUIZ.correct+'/'+QUIZ.qs.length;
+  $('resXP').textContent='+'+QUIZ.xp;
+  $('resTime').textContent=mins+'m';
+  const pct=QUIZ.correct/QUIZ.qs.length;
+  $('resTitle').textContent=QUIZ.mission?'MISSION COMPLETE!':'TRAINING DONE!';
+  $('resMsg').textContent=pct>=0.9?'Outstanding, agent. The Owl is impressed. 🦉':pct>=0.7?'Great work — that\'s exactly the right level of challenge!':'Tough mission — every slip you fix makes you stronger!';
+  const dl=$('resDeltas');dl.innerHTML='';
+  for(const [sk,d] of Object.entries(QUIZ.deltas)){
+    const s=STRANDS.find(x=>x.id===sk);
+    dl.innerHTML+=`<div class="delta-row"><span>${s.icon}</span><span>${s.name}</span><span class="d ${d>=0?'up':'dn'}">${d>=0?'▲ +':'▼ '}${d} power</span></div>`;
+  }
+  showView('results');
+}
+
+/* =====================================================================
+   BADGES
+   ===================================================================== */
+const BADGES=[
+ ['first','🚀','First Mission',()=>S.missions>=1],
+ ['streak3','🔥','3-Day Streak',()=>S.streak>=3],
+ ['streak7','🌋','7-Day Streak',()=>S.streak>=7],
+ ['xp500','⭐','500 XP',()=>S.xp>=500],
+ ['xp2000','🌟','2000 XP',()=>S.xp>=2000],
+ ['silver','🥈','First Silver Belt',()=>Object.values(S.skills).some(s=>s.rating>=1100)],
+ ['gold','🥇','First Gold Belt',()=>Object.values(S.skills).some(s=>s.rating>=1300)],
+ ['owl','🦉','Owl Elite Belt',()=>Object.values(S.skills).some(s=>s.rating>=1700)],
+ ['french','🥐','French Fifty',()=>S.skills.fr.attempts>=50],
+ ['tables','⚡','Tables Titan',()=>S.skills.tt.rating>=1400],
+ ['ten','🎖️','10 Missions',()=>S.missions>=10],
+ ['thirty','🏆','30 Missions',()=>S.missions>=30],
+];
+function checkBadges(){
+  for(const [id,ic,nm,fn] of BADGES){
+    if(!S.badges.includes(id)&&fn()){S.badges.push(id);toast(ic+' Badge: '+nm+'!');}
+  }
+}
+
+/* =====================================================================
+   HOME / PRACTICE / PARENT RENDERING
+   ===================================================================== */
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+
+function skillCardHTML(s,click){
+  const sk=S.skills[s.id];
+  const [_,rank,cls]=rankOf(sk.rating);
+  const pct=Math.max(4,Math.min(100,(sk.rating-800)/(1800-800)*100));
+  return `<div class="skill-card" onclick="${click}('${s.id}')">
+    <span class="ico">${s.icon}</span>
+    <div class="nm">${s.name}</div>
+    <div class="rk ${cls}">${rank} · ${sk.rating}</div>
+    <div class="bar"><i style="width:${pct}%"></i></div></div>`;
+}
+function renderHome(){
+  $('statXP').textContent=S.xp;
+  $('statStreak').textContent=S.streak;
+  $('headSub').textContent=S.name+"'s MGS Training HQ";
+  const doneToday=S.lastMission===today();
+  $('launchTitle').textContent=doneToday?'MISSION DONE FOR TODAY!':'TODAY\'S MISSION';
+  $('launchSub').textContent=doneToday?'Come back tomorrow — or do Free Training 🎯':'About 20 questions · picked just for you';
+  $('btnMission').textContent=doneToday?'💪 EXTRA MISSION':'🚀 START MISSION';
+  const due=dueFixit().length;
+  if(due&&!doneToday)$('launchSub').textContent=due+' fix-it question'+(due>1?'s':'')+' ready + new challenges';
+  $('skillGrid').innerHTML=STRANDS.map(s=>skillCardHTML(s,'startPractice')).join('');
+  $('badgeRow').innerHTML=BADGES.map(([id,ic,nm])=>`<div class="badge ${S.badges.includes(id)?'won':''}"><div class="bi">${ic}</div><div class="bn">${nm}</div></div>`).join('');
+}
+function renderPractice(){$('practiceGrid').innerHTML=STRANDS.map(s=>skillCardHTML(s,'startPractice')).join('');}
+
+function spark(hist){
+  if(hist.length<2)return '<svg class="spark" width="70" height="20"></svg>';
+  const vals=hist.slice(-30).map(h=>h[1]);
+  const mn=Math.min(...vals),mx=Math.max(...vals),rg=mx-mn||1;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*66+2).toFixed(1)},${(16-(v-mn)/rg*12+2).toFixed(1)}`).join(' ');
+  return `<svg class="spark" width="70" height="20"><polyline points="${pts}" fill="none" stroke="#3ee0f0" stroke-width="2" stroke-linecap="round"/></svg>`;
+}
+function renderParent(){
+  $('pMissions').textContent=S.missions;
+  $('pMins').textContent=S.minutes+'m';
+  const weekAgo=Date.now()-7*864e5;
+  const recent=S.log.filter(l=>new Date(l.t).getTime()>=weekAgo);
+  const tot=recent.reduce((a,l)=>a+l.total,0),cor=recent.reduce((a,l)=>a+l.correct,0);
+  $('pAcc').textContent=tot?Math.round(cor/tot*100)+'%':'–';
+  const rows=STRANDS.map(s=>{
+    const sk=S.skills[s.id];
+    const acc=sk.recent.length?Math.round(sk.recent.reduce((a,b)=>a+b,0)/sk.recent.length*100):null;
+    const trend=sk.history.length>5?sk.history[sk.history.length-1][1]-sk.history[Math.max(0,sk.history.length-15)][1]:0;
+    return {s,sk,acc,trend};
+  }).sort((a,b)=>a.sk.rating-b.sk.rating);
+  $('pTable').innerHTML=rows.map(({s,sk,acc,trend})=>{
+    const cls=sk.rating<1100?'weak':sk.rating<1350?'ok':'strong';
+    return `<tr><td>${s.icon} ${s.name}</td>
+      <td><span class="pill ${cls}">${sk.rating}</span></td>
+      <td>${spark(sk.history)} ${trend>10?'📈':trend<-10?'📉':''}</td>
+      <td>${acc===null?'–':acc+'%'}${sk.attempts?' <span style="color:var(--ink-dim)">('+sk.attempts+' qs)</span>':''}</td>
+      <td>${sk.lastSeen===today()?'✅':''}</td></tr>`;
+  }).join('');
+  const weak=rows.slice(0,2).map(r=>r.s.name);
+  const strong=rows[rows.length-1].s.name;
+  $('pAdvice').innerHTML=`<b>This week's focus:</b> the mission builder is automatically weighting <b>${weak.join('</b> and <b>')}</b> — worth 5 minutes of chat or a real-world game on these (shopping change, journey times, French words at dinner). Strongest area: <b>${strong}</b> — tell him you've noticed! Aim for one mission a day; the engine does the rest.`;
+  $('pSlips').innerHTML=S.slips.slice(0,10).map(sl=>{
+    const s=STRANDS.find(x=>x.id===sl.skill);
+    return `<div class="slip-item">${s.icon} ${sl.q} — answered <b>${sl.given}</b>, correct: <i>${sl.ans}</i></div>`;
+  }).join('')||'<div class="slip-item">No slips yet — do a mission first!</div>';
+}
+
+/* ---------- data tools ---------- */
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='owl-academy-'+today()+'.json';a.click();
+}
+function importData(){
+  const txt=prompt('Paste the exported JSON here:');
+  if(!txt)return;
+  try{const d=JSON.parse(txt);if(!d.skills)throw 0;S=d;save();location.reload();}
+  catch(e){alert('That didn\'t look like an Owl Academy export.');}
+}
+function resetData(){
+  if(confirm('Really delete ALL of '+S.name+'\'s progress? This cannot be undone.')&&confirm('Are you absolutely sure?')){
+    localStorage.removeItem(KEY);location.reload();
+  }
+}
+
+/* =====================================================================
+   AUTO-COACH — the app refreshes its own question banks via the Claude API.
+   Runs weekly, or sooner when a bank runs low. Sends Henry's per-skill
+   levels + recent slips + already-seen content; receives a validated batch
+   of new items pitched just above his current level.
+   ===================================================================== */
+const COACH_MODEL='claude-opus-4-8';
+const COACH_ITEM=(props,req)=>({type:'object',additionalProperties:false,properties:props,required:req});
+const COACH_SCHEMA={type:'object',additionalProperties:false,
+ properties:{
+  spell:{type:'array',items:COACH_ITEM({word:{type:'string'},wrong1:{type:'string'},wrong2:{type:'string'},diff:{type:'integer'}},['word','wrong1','wrong2','diff'])},
+  gram:{type:'array',items:COACH_ITEM({q:{type:'string'},correct:{type:'string'},wrongs:{type:'array',items:{type:'string'}},explain:{type:'string'},diff:{type:'integer'}},['q','correct','wrongs','explain','diff'])},
+  syn:{type:'array',items:COACH_ITEM({word:{type:'string'},match:{type:'string'},wrongs:{type:'array',items:{type:'string'}},diff:{type:'integer'}},['word','match','wrongs','diff'])},
+  ant:{type:'array',items:COACH_ITEM({word:{type:'string'},match:{type:'string'},wrongs:{type:'array',items:{type:'string'}},diff:{type:'integer'}},['word','match','wrongs','diff'])},
+  fr:{type:'array',items:COACH_ITEM({french:{type:'string'},english:{type:'string'},diff:{type:'integer'}},['french','english','diff'])},
+  odd:{type:'array',items:COACH_ITEM({options:{type:'array',items:{type:'string'}},answer:{type:'string'},why:{type:'string'},diff:{type:'integer'}},['options','answer','why','diff'])},
+ },required:['spell','gram','syn','ant','fr','odd']};
+
+function coachNeeded(){
+  if(!S.coach.apiKey||!S.coach.auto)return false;
+  if(!S.coach.lastRefresh||Date.now()-S.coach.lastRefresh>7*864e5)return true;
+  return activeCount('spell','sp:')<12||activeCount('syn','sy:')<10||activeCount('fr','fr:')<12
+       ||activeCount('gram','gr:')<6||activeCount('odd','odd:')<4||activeCount('ant','an:')<4;
+}
+function coachPrompt(){
+  const dTarget=id=>Math.max(1,Math.min(5,Math.round((S.skills[id].rating-800)/160)));
+  const slips=S.slips.slice(0,20).map(s=>`- [${s.skill}] ${s.q} — answered "${s.given}", correct "${s.ans}"`).join('\n')||'(none yet)';
+  const have=cat=>mergedBank(cat).map(w=>w[BANK_KEY[cat]]).join('; ');
+  return `You are the content engine for "Owl Academy", a learning app for ${S.name}, an able 8-year-old boy starting Year 4 at Manchester Grammar School Junior School (a selective UK school that teaches beyond the National Curriculum; his Year 4 language is French).
+
+Generate NEW practice items pitched slightly above his current level. Difficulty tags run 1 (easy Y3) to 5 (stretch, Y5/6 level). Current difficulty targets by category: spelling/grammar ${dTarget('spell')}, vocabulary ${dTarget('vocab')}, reasoning ${dTarget('vr')}, French ${dTarget('fr')}. Generate most items AT the target, a few one step above.
+
+His recent mistakes (target these misconception patterns where sensible):
+${slips}
+
+STRICT RULES:
+- Age-appropriate, UK English (favourite, colour), UK curriculum style.
+- Do NOT repeat any of these existing items:
+  spellings: ${have('spell')}
+  grammar answers: ${have('gram')}
+  synonym words: ${have('syn')}
+  antonym words: ${have('ant')}
+  French: ${have('fr')}
+  odd-one-out answers: ${have('odd')}
+- spell: real English words with two PLAUSIBLE misspellings a child would actually write (12 items).
+- gram: Year 4 grammar MCQs — word classes, homophones, apostrophes, fronted adverbials, irregular verbs; the question may contain simple HTML like <span class="hl">...</span> to highlight; 2-3 wrong options; short child-friendly explanation (8 items).
+- syn: "means the same as" with 3 wrong options — include ambitious vocabulary (12 items).
+- ant: opposites with 3 wrong options (4 items).
+- fr: French↔English pairs a Year 4 beginner should learn: greetings, numbers 21-31, colours, family, food, classroom, weather (14 items).
+- odd: odd-one-out sets of exactly 4 options with a clear single answer and a one-line why (6 items).`;
+}
+async function coachRefresh(manual){
+  if(!S.coach.apiKey){if(manual)alert('Add your Anthropic API key first (get one at console.anthropic.com).');return;}
+  S.coach.lastResult='working…';renderCoach&&renderCoach();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':S.coach.apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body:JSON.stringify({
+        model:COACH_MODEL,max_tokens:8000,
+        output_config:{format:{type:'json_schema',schema:COACH_SCHEMA}},
+        messages:[{role:'user',content:coachPrompt()}],
+      }),
+    });
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error((e.error&&e.error.message)||('HTTP '+res.status));}
+    const data=await res.json();
+    if(data.stop_reason==='refusal')throw new Error('request was declined — try again later');
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const added=coachMerge(JSON.parse(text));
+    S.coach.lastRefresh=Date.now();S.coach.added+=added;
+    S.coach.lastResult=added+' new questions added '+new Date().toLocaleDateString('en-GB');
+    save();toast('🦉 '+added+' fresh challenges delivered!');
+  }catch(err){
+    S.coach.lastResult='refresh failed: '+err.message;save();
+  }
+  renderCoach&&renderCoach();
+}
+function coachMerge(d){
+  const clampD=x=>Math.max(1,Math.min(5,Math.round(+x||3)));
+  const CAP=500;let added=0;
+  const seen=cat=>new Set(mergedBank(cat).map(w=>norm(w[BANK_KEY[cat]])));
+  const push=(cat,item)=>{if(S.extra[cat].length<CAP){S.extra[cat].push(item);added++;}};
+  const sSp=seen('spell');
+  for(const it of d.spell||[])if(it.word&&it.wrong1&&it.wrong2&&!sSp.has(norm(it.word))
+    &&norm(it.wrong1)!==norm(it.word)&&norm(it.wrong2)!==norm(it.word))
+    {sSp.add(norm(it.word));push('spell',[it.word,it.wrong1,it.wrong2,clampD(it.diff)]);}
+  const sGr=seen('gram');
+  for(const it of d.gram||[])if(it.q&&it.correct&&Array.isArray(it.wrongs)&&it.wrongs.length>=2
+    &&!sGr.has(norm(it.correct))&&!it.wrongs.some(w=>norm(w)===norm(it.correct)))
+    {sGr.add(norm(it.correct));push('gram',[it.q,it.correct,it.wrongs.slice(0,3),it.explain||'',clampD(it.diff)]);}
+  for(const [cat,key] of [['syn','sy'],['ant','an']]){
+    const sV=seen(cat);
+    for(const it of d[cat]||[])if(it.word&&it.match&&Array.isArray(it.wrongs)&&it.wrongs.length>=2
+      &&!sV.has(norm(it.word))&&!it.wrongs.some(w=>norm(w)===norm(it.match)))
+      {sV.add(norm(it.word));push(cat,[it.word,it.match,it.wrongs.slice(0,3),clampD(it.diff)]);}
+  }
+  const sFr=seen('fr');
+  for(const it of d.fr||[])if(it.french&&it.english&&!sFr.has(norm(it.french)))
+    {sFr.add(norm(it.french));push('fr',[it.french,it.english,clampD(it.diff)]);}
+  const sOd=seen('odd');
+  for(const it of d.odd||[])if(Array.isArray(it.options)&&it.options.length===4&&it.answer
+    &&it.options.some(o=>norm(o)===norm(it.answer))&&!sOd.has(norm(it.answer)))
+    {sOd.add(norm(it.answer));push('odd',[it.options,it.answer,it.why||'',clampD(it.diff)]);}
+  return added;
+}
+function saveCoachKey(){
+  const v=$('coachKey').value.trim();
+  S.coach.apiKey=v;save();renderCoach();
+  if(v)coachRefresh(true);
+}
+function toggleCoach(){S.coach.auto=!S.coach.auto;save();renderCoach();}
+function renderCoach(){
+  const box=$('coachBox');if(!box)return;
+  const extraTotal=Object.values(S.extra).reduce((a,b)=>a+b.length,0);
+  const retired=Object.values(S.mastered).filter(m=>m.streak>=3).length;
+  box.innerHTML=S.coach.apiKey
+   ?`<div style="font-size:13px;line-height:1.7">
+      <b style="color:var(--green)">● Auto-Coach is on</b> — the app tops itself up with new AI-written questions weekly, or sooner if a topic runs low.<br>
+      Question bank: <b>${extraTotal} coach-added</b> · <b>${retired} mastered &amp; retired</b><br>
+      <span style="color:var(--ink-dim)">${S.coach.lastResult||'No refresh yet — one will run automatically.'}</span></div>
+     <div class="tool-row">
+      <button onclick="coachRefresh(true)">🔄 Refresh now</button>
+      <button onclick="toggleCoach()">${S.coach.auto?'Pause auto-refresh':'Resume auto-refresh'}</button>
+      <button class="danger" onclick="if(confirm('Remove the API key?')){S.coach.apiKey='';save();renderCoach();}">Remove key</button>
+     </div>`
+   :`<div style="font-size:13px;line-height:1.7;color:var(--ink-dim)">
+      Auto-Coach lets the app <b style="color:var(--ink)">write its own new questions</b> targeted at ${S.name}'s weak spots — fresh spelling, vocabulary, French and reasoning appear automatically each week as he levels up. It uses your own Anthropic API key (typical cost: a few pence per week). Create one at <b>console.anthropic.com</b> → API keys, then paste it here — one-time setup.</div>
+     <div class="type-row" style="margin-top:10px">
+      <input id="coachKey" type="password" placeholder="sk-ant-…" style="font-size:14px">
+      <button onclick="saveCoachKey()">SAVE</button>
+     </div>`;
+}
+
+/* ---------- view router ---------- */
+function showView(v){
+  for(const x of ['home','practice','quiz','results','parent']){
+    $('view-'+x).classList.toggle('hidden',x!==v);
+    const nb=$('nav-'+x);if(nb)nb.classList.toggle('on',x===v);
+  }
+  if(v==='home')renderHome();
+  if(v==='practice')renderPractice();
+  if(v==='parent'){renderParent();renderCoach();}
+  window.scrollTo(0,0);
+}
+function goHome(){showView('home');}
+
+/* =====================================================================
+   FAMILY PIN GATE — keeps casual visitors out of the hosted app.
+   Unlock is remembered per device for 60 days.
+   ===================================================================== */
+const PIN_SALT='mgs-owl-';
+function pinHash(s){s=PIN_SALT+s;let h=5381;for(let i=0;i<s.length;i++){h=(((h<<5)+h)+s.charCodeAt(i))>>>0;}return h;}
+const PIN_TARGET=1531070308; // hash of the family PIN (1515 — the year MGS was founded)
+function pinUnlocked(){return Date.now()-(+localStorage.getItem('owlAcademy.pinOk')||0)<60*864e5;}
+function tryPin(){
+  const inp=$('pinInput');
+  if(pinHash(inp.value.trim())===PIN_TARGET){
+    localStorage.setItem('owlAcademy.pinOk',String(Date.now()));
+    const g=$('pinGate');if(g)g.remove();
+  }else{
+    const c=$('pinCard');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
+    inp.value='';inp.focus();
+  }
+}
+
+/* streak decay check + silent auto-coach on load */
+(function(){
+  if(pinUnlocked()){const g=$('pinGate');if(g)g.remove();}
+  else{
+    const inp=$('pinInput');
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')tryPin();});
+    setTimeout(()=>inp.focus(),100);
+  }
+  if(S.lastMission){
+    const gap=(Date.now()-new Date(S.lastMission).getTime())/864e5;
+    if(gap>2){S.streak=0;save();}
+  }
+  renderHome();
+  setTimeout(()=>{if(coachNeeded())coachRefresh(false);},2500);
+})();
+</script>
+</body>
+</html>

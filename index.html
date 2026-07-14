@@ -1,0 +1,3189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Henry @ MGS</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1a3a5c;
+      --navy-light: #2a5080;
+      --gold: #c8a951;
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #1a2433;
+      --muted: #6b7a8d;
+      --green: #27ae60;
+      --red: #e74c3c;
+      --orange: #e67e22;
+      --border: #e1e8ef;
+      --shadow: 0 2px 12px rgba(26,58,92,0.09);
+      --radius: 14px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    .app {
+      max-width: 680px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--navy);
+      color: white;
+      padding: 18px 20px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+    .header h1 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.3px; }
+    .header h1 span { color: var(--gold); }
+    .header-sub { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+    .settings-btn { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 1.1rem; padding: 4px; }
+    .hdr-term { font-size: 0.78rem; color: var(--gold); font-weight: 700; margin-top: 2px; }
+
+    /* ── Holiday banner ── */
+    .hol-banner { background: linear-gradient(135deg, var(--navy-light), var(--navy)); color: white; border-radius: var(--radius); padding: 22px 20px; text-align: center; }
+    .hol-banner-icon { font-size: 2.6rem; margin-bottom: 6px; }
+    .hol-banner-title { font-size: 1.25rem; font-weight: 800; }
+    .hol-banner-sub { font-size: 0.85rem; opacity: 0.7; margin-top: 5px; }
+    .hol-banner-back { font-size: 0.88rem; margin-top: 10px; font-weight: 600; color: var(--gold); }
+
+    /* ── Holiday day in week view ── */
+    .day-card.is-holiday { background: #f5f7fa; }
+    .day-card.is-holiday .day-hdr { background: #8496a9; }
+    .chip.ch-hol { background: #e8f0fe; color: #4a6fa5; }
+    .chip.ch-closed { background: #fde8ff; color: #7c4dff; }
+
+    /* ── Term dates in Manage ── */
+    .term-block { margin-bottom: 18px; }
+    .term-block-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .term-season { background: var(--navy); color: white; border-radius: 6px; padding: 2px 10px; font-size: 0.76rem; font-weight: 700; }
+    .term-rows { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .term-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 13px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .term-row:last-child { border-bottom: none; }
+    .term-row-lbl { color: var(--muted); }
+    .term-row-dates { font-weight: 600; font-size: 0.83rem; }
+    .term-row.tr-hol { background: #fffbf0; }
+    .term-row.tr-closed { background: #f8f0ff; }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 680px;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
+    }
+    .nav-btn {
+      flex: 1;
+      padding: 10px 8px 8px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .nav-btn.active { color: var(--navy); }
+    .nav-btn svg { width: 22px; height: 22px; }
+
+    /* ── Views ── */
+    .view { display: none; padding: 14px; }
+    .view.active { display: block; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin-bottom: 11px;
+    }
+
+    /* ── Today greeting ── */
+    .greeting { font-size: 1.4rem; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+    .greeting-date { font-size: 0.88rem; color: var(--muted); margin-bottom: 14px; }
+
+    /* ── Need items ── */
+    .need-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .need-item:last-child { border-bottom: none; }
+    .need-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .ni-blue { background: #dce8f5; }
+    .ni-green { background: #d5f5e3; }
+    .ni-gold { background: #fdf3dc; }
+    .ni-red { background: #fde8e8; }
+    .ni-grey { background: #f0f2f5; }
+    .need-text { flex: 1; min-width: 0; }
+    .need-label { font-weight: 700; font-size: 0.92rem; }
+    .need-sub { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+    .badge {
+      font-size: 0.68rem; font-weight: 700;
+      padding: 3px 9px; border-radius: 20px;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .b-yes { background: #d5f5e3; color: var(--green); }
+    .b-no  { background: #f0f2f5; color: var(--muted); }
+    .b-due { background: #fde8e8; color: var(--red); }
+    .b-warn { background: #fef5e4; color: var(--orange); }
+
+    /* ── Homework items ── */
+    .hw-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .hw-item:last-child { border-bottom: none; }
+    .hw-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+      transition: all 0.15s;
+    }
+    .hw-check.done { background: var(--green); border-color: var(--green); }
+    .hw-check.done::after { content: '✓'; color: white; font-size: 0.68rem; font-weight: 800; }
+    .hw-info { flex: 1; min-width: 0; }
+    .hw-subject { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--navy); }
+    .hw-desc { font-size: 0.9rem; margin: 2px 0; }
+    .hw-meta { font-size: 0.75rem; color: var(--muted); }
+    .due-today { color: var(--red); font-weight: 700; }
+    .due-soon  { color: var(--orange); font-weight: 700; }
+    .hw-item.done-item { opacity: 0.42; }
+    .hw-item.done-item .hw-desc { text-decoration: line-through; }
+    .delete-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px 6px; font-size: 1rem; flex-shrink: 0; }
+    .delete-btn:hover { color: var(--red); }
+
+    /* ── Fixtures ── */
+    .fixture-row {
+      display: flex;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .fixture-row:last-child { border-bottom: none; }
+    .fix-date { text-align: center; min-width: 40px; }
+    .fix-day  { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+    .fix-num  { font-size: 1.3rem; font-weight: 800; color: var(--navy); line-height: 1; }
+    .fix-mon  { font-size: 0.68rem; color: var(--muted); }
+    .fix-info { flex: 1; }
+    .fix-title { font-weight: 700; font-size: 0.92rem; }
+    .fix-meta  { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .fix-kit   { font-size: 0.75rem; color: var(--navy-light); margin-top: 3px; }
+    .sport-chip {
+      display: inline-block;
+      font-size: 0.68rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 10px;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      margin-right: 5px;
+    }
+    .s-rugby    { background: #ffe0e0; color: #c0392b; }
+    .s-football { background: #d5f5e3; color: #1e8449; }
+    .s-hockey   { background: #dce8f5; color: #1a6ba0; }
+    .s-cricket  { background: #fdf3dc; color: #b7950b; }
+    .s-swimming { background: #d5f4ff; color: #0984e3; }
+    .s-other    { background: #f0e0ff; color: #7d3c98; }
+
+    /* ── Key dates ── */
+    .kd-row {
+      display: flex; align-items: center; gap: 11px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .kd-row:last-child { border-bottom: none; }
+    .kd-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+    .kd-info { flex: 1; }
+    .kd-title { font-weight: 600; font-size: 0.92rem; }
+    .kd-when  { font-size: 0.77rem; color: var(--muted); }
+
+    /* ── Week view ── */
+    .week-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .wk-btn {
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .wk-title { font-weight: 800; font-size: 0.95rem; color: var(--navy); }
+    .day-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .day-card.is-today .day-hdr { background: var(--navy); color: white; }
+    .day-hdr {
+      padding: 9px 14px;
+      background: var(--bg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .day-name { font-weight: 800; font-size: 0.92rem; }
+    .day-ds   { font-size: 0.78rem; opacity: 0.7; }
+    .day-chips { display: flex; flex-wrap: wrap; gap: 5px; padding: 9px 14px; }
+    .chip {
+      font-size: 0.7rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 12px;
+    }
+    .ch-sport  { background: #dce8f5; color: #1a6ba0; }
+    .ch-hw     { background: #fde8e8; color: var(--red); }
+    .ch-wrap   { background: #fdf3dc; color: #b7950b; }
+    .ch-fix    { background: #ffe0e0; color: #c0392b; }
+    .ch-date   { background: #f0e0ff; color: #7d3c98; }
+    .ch-nohw   { background: #d5f5e3; color: var(--green); }
+    .day-empty { padding: 8px 14px 11px; font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Month view ── */
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .mo-hdr-cell {
+      background: var(--navy);
+      color: white;
+      text-align: center;
+      font-weight: 700;
+      padding: 7px 0;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .mo-day-cell {
+      background: white;
+      padding: 4px 5px;
+      min-height: 70px;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      overflow: hidden;
+    }
+    .mo-day-num {
+      font-weight: 700;
+      font-size: 0.82rem;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+    .mo-day-cell.is-today { background: #fef5e4; }
+    .mo-day-cell.is-today .mo-day-num {
+      color: white;
+      background: var(--navy);
+      display: inline-block;
+      border-radius: 999px;
+      padding: 1px 6px;
+      align-self: flex-start;
+    }
+    .mo-day-cell.is-other { background: #f6f8fa; opacity: 0.55; }
+    .mo-day-cell.is-other .mo-day-num { color: var(--muted); }
+    .mo-day-cell.is-weekend { background: #f9fafc; }
+    .mo-day-cell.is-holiday { background: #f0f4f8; }
+    .mo-day-cell.is-closed  { background: #f7eefd; }
+    .mo-evt {
+      font-size: 0.62rem;
+      line-height: 1.15;
+      padding: 1px 4px;
+      border-radius: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 600;
+    }
+    .mo-evt.e-hw    { background: #fde8e8; color: var(--red); }
+    .mo-evt.e-fix   { background: #ffe0e0; color: #c0392b; }
+    .mo-evt.e-kd    { background: #f0e0ff; color: #7d3c98; }
+    .mo-evt.e-wrap  { background: #fdf3dc; color: #b7950b; }
+    .mo-evt.e-sport { background: #dce8f5; color: #1a6ba0; }
+    .mo-evt.e-hol   { background: transparent; color: #6b7a8d; padding: 0; font-style: italic; }
+    .mo-more {
+      font-size: 0.58rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .mo-legend {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      justify-content: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .mo-legend-sw {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 3px;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+
+    /* ── Manage tabs ── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex: 1 0 auto;
+      padding: 7px 10px;
+      border: none;
+      border-radius: 7px;
+      background: none;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .tab-btn.active { background: white; color: var(--navy); box-shadow: 0 1px 5px rgba(0,0,0,0.08); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Forms ── */
+    .sec-title { font-size: 0.95rem; font-weight: 800; color: var(--navy); margin: 14px 0 9px; }
+    .sec-title:first-child { margin-top: 0; }
+    .form-group { margin-bottom: 11px; }
+    label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+      -webkit-appearance: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--navy); }
+    textarea { resize: vertical; min-height: 64px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn {
+      display: block; width: 100%;
+      padding: 13px;
+      border: none; border-radius: 11px;
+      font-size: 0.95rem; font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--navy); color: white; }
+    .btn-secondary { background: var(--bg); color: var(--navy); border: 1.5px solid var(--border); }
+
+    /* ── Wraparound toggles ── */
+    .wrap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+    .wrap-col  { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .wrap-lbl  { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+    .wrap-tog  {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: white;
+      cursor: pointer;
+      font-size: 0.75rem; font-weight: 700;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .wrap-tog.on { background: var(--navy); border-color: var(--navy); color: white; }
+
+    /* ── Manage list rows ── */
+    .mgr-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+    .mgr-row:last-child { border-bottom: none; }
+    .mgr-row.done-item { opacity: 0.42; }
+    .mgr-row.done-item .hw-desc { text-decoration: line-through; }
+
+    /* ── Books / Reading ── */
+    .book-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .book-row:last-child { border-bottom: none; }
+    .book-info { flex: 1; min-width: 0; }
+    .book-title { font-weight: 700; font-size: 0.92rem; }
+    .book-author { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+    .book-notes { font-size: 0.74rem; color: var(--muted); margin-top: 2px; font-style: italic; }
+    .book-status {
+      font-size: 0.7rem; font-weight: 800;
+      padding: 4px 10px; border-radius: 14px;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      cursor: pointer;
+      border: none;
+      flex-shrink: 0;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .bs-todo    { background: #f0f2f5; color: var(--muted); }
+    .bs-reading { background: #fef5e4; color: var(--orange); }
+    .bs-read    { background: #d5f5e3; color: var(--green); }
+    .book-row.is-read { opacity: 0.55; }
+    .book-row.is-read .book-title { text-decoration: line-through; }
+    .read-badge {
+      display: inline-block;
+      background: #d5f5e3; color: var(--green);
+      font-size: 0.68rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 10px;
+      margin-left: 8px;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+
+    /* ── Find book modal ── */
+    .find-link {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 14px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.15s, transform 0.1s;
+    }
+    .find-link:active { background: #e1e8ef; transform: scale(0.98); }
+    .find-link::after {
+      content: '↗';
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    /* ── Book review modal ── */
+    .review-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 800;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .review-overlay.open { display: flex; }
+    .review-panel {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 18px 20px 28px;
+    }
+    .review-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+    .review-title { font-size: 1.05rem; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+    .review-author { font-size: 0.82rem; color: var(--muted); margin-bottom: 16px; }
+    .review-section { margin-bottom: 14px; }
+    .review-section label { display: flex; align-items: center; gap: 6px; }
+    .review-emoji { font-size: 1.1rem; }
+    .review-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .review-actions .btn { flex: 1; padding: 12px; }
+    .review-snippet {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.4;
+      padding: 5px 8px;
+      background: var(--bg);
+      border-radius: 6px;
+      border-left: 3px solid var(--gold);
+    }
+    .review-snippet.liked    { border-left-color: var(--green); }
+    .review-snippet.disliked { border-left-color: var(--red);   }
+    .review-btn {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--navy);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .review-btn.has-review { background: #fef5e4; border-color: var(--gold); color: var(--orange); }
+    .star-row { display: flex; gap: 4px; }
+    .star-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 1.6rem; line-height: 1; padding: 2px 2px;
+      color: #d6dbe1; transition: color 0.1s, transform 0.1s;
+    }
+    .star-btn.lit { color: var(--gold); }
+    .star-btn:active { transform: scale(0.85); }
+    .star-display { font-size: 0.9rem; color: var(--gold); letter-spacing: 1px; }
+
+    /* ── Setup / reference info ── */
+    .info-table { width: 100%; font-size: 0.85rem; border-collapse: collapse; }
+    .info-table td { padding: 6px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .info-table tr:last-child td { border-bottom: none; }
+    .info-table td:first-child { color: var(--muted); white-space: nowrap; padding-right: 12px; font-weight: 600; }
+    .info-list { font-size: 0.86rem; line-height: 1.55; padding-left: 0; list-style: none; }
+    .info-list li { padding: 4px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-start; }
+    .info-list li:last-child { border-bottom: none; }
+    .info-list li::before { content: '•'; color: var(--gold); font-weight: 800; flex-shrink: 0; }
+    .info-list.no-bullet li::before { content: ''; }
+    .info-note { font-size: 0.78rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+    .info-link { color: var(--navy); text-decoration: none; font-weight: 600; }
+    .info-link:active { opacity: 0.6; }
+
+    .form-row {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .form-row:last-child { border-bottom: none; }
+    .form-row.done-item { opacity: 0.55; }
+    .form-row.done-item .form-name { text-decoration: line-through; }
+    .form-info { flex: 1; min-width: 0; }
+    .form-name { font-weight: 700; font-size: 0.9rem; }
+    .form-meta { font-size: 0.76rem; color: var(--muted); margin-top: 1px; }
+    .deadline-banner {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .deadline-banner.is-soon { background: linear-gradient(135deg, #e67e22, #d35400); }
+    .deadline-banner.is-ok   { background: linear-gradient(135deg, #27ae60, #1e8449); }
+
+    /* ── Empty state ── */
+    .empty { text-align: center; padding: 22px 10px; color: var(--muted); font-size: 0.88rem; }
+    .empty-icon { font-size: 2rem; margin-bottom: 6px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 88px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--navy);
+      color: white;
+      padding: 9px 20px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      opacity: 0;
+      transition: all 0.25s;
+      z-index: 300;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── PIN screen ── */
+    .pin-screen {
+      position: fixed; inset: 0;
+      background: var(--navy);
+      z-index: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 24px;
+      color: white;
+    }
+    .pin-logo { margin-bottom: 24px; }
+    .pin-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; text-align: center; }
+    .pin-subtitle { font-size: 0.88rem; color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 28px; min-height: 1.3em; }
+    .pin-dots { display: flex; gap: 14px; justify-content: center; margin-bottom: 32px; }
+    .pin-dot  { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); transition: all 0.15s; }
+    .pin-dot.filled { background: white; border-color: white; }
+    .pin-dot.error  { background: var(--red); border-color: var(--red); }
+    @keyframes pinShake {
+      0%,100%  { transform: translateX(0); }
+      20%,60%  { transform: translateX(-8px); }
+      40%,80%  { transform: translateX(8px); }
+    }
+    .pin-shake { animation: pinShake 0.36s ease; }
+    .pin-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 76px);
+      gap: 13px;
+      justify-content: center;
+    }
+    .pin-pad button {
+      width: 76px; height: 76px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.09);
+      color: white;
+      font-size: 1.65rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .pin-pad button:active { background: rgba(255,255,255,0.22); transform: scale(0.93); }
+    .pin-pad button.pin-action { font-size: 1.2rem; color: rgba(255,255,255,0.65); }
+    .pin-pad button.pin-empty  { visibility: hidden; pointer-events: none; }
+
+    /* ── Settings sheet ── */
+    .settings-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 700;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .settings-overlay.open { display: flex; }
+    .settings-panel {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 680px;
+      padding: 10px 0 32px;
+    }
+    .settings-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 10px auto 18px; }
+    .settings-title-row { padding: 0 20px 12px; font-weight: 800; font-size: 0.95rem; color: var(--navy); border-bottom: 1px solid var(--border); }
+    .settings-opt {
+      display: block; width: 100%;
+      padding: 16px 20px;
+      border: none; background: none;
+      text-align: left;
+      font-size: 0.97rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-opt:last-child { border-bottom: none; }
+    .settings-opt:hover { background: var(--bg); }
+    .settings-opt.danger { color: var(--red); }
+    .settings-cancel { color: var(--muted); font-weight: 700; }
+
+    /* ── Setup screen ── */
+    .setup {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 24px;
+    }
+    .setup-logo { font-size: 3rem; margin-bottom: 14px; }
+    .setup h2 { font-size: 1.5rem; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .setup p  { font-size: 0.88rem; color: var(--muted); text-align: center; max-width: 380px; margin-bottom: 20px; }
+    .setup .inner { width: 100%; max-width: 440px; }
+    .setup-note { margin-top: 10px; font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+    @media (min-width: 480px) {
+      .header h1 { font-size: 1.5rem; }
+      .greeting  { font-size: 1.6rem; }
+    }
+
+    /* ── Responsive: tablets (iPad mini, regular iPad portrait) ── */
+    @media (min-width: 768px) {
+      .app { max-width: 760px; }
+      .nav { max-width: 760px; }
+
+      .header h1 { font-size: 1.6rem; }
+      .header { padding: 22px 24px 16px; }
+      .greeting  { font-size: 1.8rem; }
+      .greeting-date { font-size: 0.95rem; }
+
+      .view { padding: 18px; }
+      .card { padding: 16px 18px; }
+
+      /* Bigger tap targets */
+      .hw-check { width: 26px; height: 26px; }
+      .wrap-tog { width: 48px; height: 48px; font-size: 0.85rem; }
+      .nav-btn  { font-size: 0.72rem; padding: 12px 8px 10px; }
+      .nav-btn svg { width: 24px; height: 24px; }
+
+      /* PIN pad scaled up */
+      .pin-pad { grid-template-columns: repeat(3, 88px); gap: 16px; }
+      .pin-pad button { width: 88px; height: 88px; font-size: 1.8rem; }
+      .pin-dot { width: 18px; height: 18px; }
+      .pin-title { font-size: 1.6rem; }
+    }
+
+    /* ── Responsive: large tablets & fridge portrait (1080 wide) ── */
+    @media (min-width: 1024px) {
+      .app { max-width: 1100px; padding-bottom: 110px; }
+      .nav { max-width: 1100px; }
+
+      /* Today view becomes a self-arranging multi-column grid (only when active) */
+      #vToday.active {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 14px;
+        align-items: start;
+        padding: 20px;
+      }
+      .greeting,
+      .greeting-date { grid-column: 1 / -1; }
+
+      /* Bigger header */
+      .header { padding: 26px 26px 18px; }
+      .header h1 { font-size: 1.75rem; }
+      .greeting  { font-size: 2rem; }
+
+      /* Bigger bottom nav for touch */
+      .nav-btn  { font-size: 0.78rem; padding: 16px 8px 13px; gap: 5px; }
+      .nav-btn svg { width: 28px; height: 28px; }
+
+      /* Bigger interactive controls */
+      .tab-btn     { font-size: 0.82rem; padding: 10px 16px; }
+      .book-status { font-size: 0.8rem;  padding: 7px 14px; }
+      .review-btn  { font-size: 0.78rem; padding: 8px 12px; }
+      .wk-btn      { font-size: 0.9rem;  padding: 8px 18px; }
+      .btn         { padding: 15px; font-size: 1rem; }
+
+      /* Month: roomier cells */
+      .mo-day-cell { min-height: 110px; padding: 7px 9px; gap: 2px; }
+      .mo-day-num  { font-size: 0.95rem; }
+      .mo-evt      { font-size: 0.7rem; padding: 2px 6px; }
+      .mo-hdr-cell { font-size: 0.78rem; padding: 9px 0; }
+
+      /* Pin pad even larger */
+      .pin-pad { grid-template-columns: repeat(3, 100px); gap: 18px; }
+      .pin-pad button { width: 100px; height: 100px; font-size: 2rem; }
+    }
+
+    /* ── Responsive: fridge landscape / wide displays (≥ 1440px) ── */
+    @media (min-width: 1440px) {
+      html { font-size: 18px; }
+      .app { max-width: 1340px; }
+      .nav { max-width: 1340px; }
+
+      .header h1 { font-size: 1.85rem; }
+      .greeting  { font-size: 2.2rem; }
+      .greeting-date { font-size: 1.05rem; }
+      .card-title { font-size: 0.78rem; }
+
+      .nav-btn  { font-size: 0.88rem; padding: 20px 10px 16px; }
+      .nav-btn svg { width: 32px; height: 32px; }
+
+      .mo-day-cell { min-height: 140px; }
+      .mo-day-num  { font-size: 1.05rem; }
+      .mo-evt      { font-size: 0.78rem; padding: 3px 8px; }
+    }
+
+    /* ── Landscape orientation on short screens (some fridges) ── */
+    @media (orientation: landscape) and (max-height: 900px) and (min-width: 1024px) {
+      .header { padding: 14px 22px 10px; position: static; }
+      .greeting { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── PIN SCREEN ───────────────────────────────────────────────── -->
+<div class="pin-screen" id="pinScreen">
+  <div class="pin-logo">
+    <img src="mgs-logo.svg" alt="MGS" style="height:48px;width:auto;filter:brightness(0) invert(1) brightness(0.85)">
+  </div>
+  <div class="pin-title" id="pinTitle">Henry @ MGS</div>
+  <div class="pin-subtitle" id="pinSubtitle">Enter your PIN to continue</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div class="pin-pad">
+    <button onclick="pinKey('1')">1</button>
+    <button onclick="pinKey('2')">2</button>
+    <button onclick="pinKey('3')">3</button>
+    <button onclick="pinKey('4')">4</button>
+    <button onclick="pinKey('5')">5</button>
+    <button onclick="pinKey('6')">6</button>
+    <button onclick="pinKey('7')">7</button>
+    <button onclick="pinKey('8')">8</button>
+    <button onclick="pinKey('9')">9</button>
+    <button class="pin-action" onclick="pinClear()">✕</button>
+    <button onclick="pinKey('0')">0</button>
+    <button class="pin-action" onclick="pinBack()">⌫</button>
+  </div>
+</div>
+
+<!-- ─── FIND BOOK MODAL ───────────────────────────────────────────── -->
+<div class="review-overlay" id="findOverlay" onclick="closeFind()">
+  <div class="review-panel" onclick="event.stopPropagation()">
+    <div class="review-handle"></div>
+    <div class="review-title" id="fnTitle"></div>
+    <div class="review-author" id="fnAuthor"></div>
+
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:14px">Search for this book on:</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a id="fnLibrary" href="#" target="_blank" class="find-link">
+        <div style="font-size:1.3rem">🏛️</div>
+        <div>
+          <div style="font-weight:800">Library (Libby / BorrowBox)</div>
+          <div style="font-size:0.76rem;color:var(--muted);margin-top:1px">Free with a Manchester library card</div>
+        </div>
+      </a>
+      <a id="fnKindle" href="#" target="_blank" class="find-link">
+        <div style="font-size:1.3rem">📚</div>
+        <div>
+          <div style="font-weight:800">Kindle Store (Amazon UK)</div>
+          <div style="font-size:0.76rem;color:var(--muted);margin-top:1px">Buy outright or check Kindle Unlimited</div>
+        </div>
+      </a>
+      <a id="fnApple" href="#" target="_blank" class="find-link">
+        <div style="font-size:1.3rem">🍎</div>
+        <div>
+          <div style="font-weight:800">Apple Books</div>
+          <div style="font-size:0.76rem;color:var(--muted);margin-top:1px">Read on iPad / iPhone — best Apple experience</div>
+        </div>
+      </a>
+      <a id="fnGoogle" href="#" target="_blank" class="find-link">
+        <div style="font-size:1.3rem">🌐</div>
+        <div>
+          <div style="font-weight:800">General web search</div>
+          <div style="font-size:0.76rem;color:var(--muted);margin-top:1px">Waterstones, World of Books, used copies</div>
+        </div>
+      </a>
+    </div>
+
+    <button class="btn btn-secondary" style="margin-top:18px" onclick="closeFind()">Close</button>
+  </div>
+</div>
+
+<!-- ─── BOOK REVIEW MODAL ─────────────────────────────────────────── -->
+<div class="review-overlay" id="reviewOverlay" onclick="closeReview()">
+  <div class="review-panel" onclick="event.stopPropagation()">
+    <div class="review-handle"></div>
+    <div class="review-title" id="rvTitle"></div>
+    <div class="review-author" id="rvAuthor"></div>
+
+    <div class="review-section">
+      <label>Rating</label>
+      <div class="star-row" id="rvStars">
+        <button class="star-btn" type="button" onclick="setRvStars(1)">★</button>
+        <button class="star-btn" type="button" onclick="setRvStars(2)">★</button>
+        <button class="star-btn" type="button" onclick="setRvStars(3)">★</button>
+        <button class="star-btn" type="button" onclick="setRvStars(4)">★</button>
+        <button class="star-btn" type="button" onclick="setRvStars(5)">★</button>
+      </div>
+    </div>
+
+    <div class="review-section">
+      <label><span class="review-emoji">👍</span> What Henry liked</label>
+      <textarea id="rvLiked" rows="3" placeholder="e.g. The funny characters, the surprise twist at the end…"></textarea>
+    </div>
+
+    <div class="review-section">
+      <label><span class="review-emoji">👎</span> What Henry didn't like</label>
+      <textarea id="rvDisliked" rows="3" placeholder="e.g. A bit slow at the start, scary in places…"></textarea>
+    </div>
+
+    <div class="review-actions">
+      <button class="btn btn-secondary" onclick="closeReview()">Cancel</button>
+      <button class="btn btn-primary"   onclick="saveReview()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SETTINGS SHEET ────────────────────────────────────────────── -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()">
+  <div class="settings-panel" onclick="event.stopPropagation()">
+    <div class="settings-handle"></div>
+    <div class="settings-title-row">App settings</div>
+    <button class="settings-opt" onclick="startChangePin()">🔒 Change PIN</button>
+    <button class="settings-opt settings-cancel" onclick="closeSettings()">Cancel</button>
+  </div>
+</div>
+
+<!-- ─── MAIN APP ─────────────────────────────────────────────────── -->
+<div class="app" id="mainApp" style="display:none">
+
+  <div class="header">
+    <div class="header-row">
+      <img src="mgs-logo.svg" alt="The Manchester Grammar School" style="height:44px;width:auto;flex-shrink:0;filter:brightness(0) invert(1)">
+      <button class="settings-btn" onclick="openSettings()" title="Settings">⚙</button>
+    </div>
+    <div class="header-sub">Henry's Planner &nbsp;·&nbsp; <span id="hdrDate"></span></div>
+  </div>
+
+  <!-- TODAY ──────────────────────────────────────────────────── -->
+  <div class="view active" id="vToday">
+    <div class="greeting" id="greeting"></div>
+    <div class="greeting-date" id="greetDate"></div>
+
+    <div class="card" style="background:linear-gradient(135deg,var(--navy-light),var(--navy));color:white;display:flex;align-items:center;gap:14px">
+      <div style="font-size:1.8rem;flex-shrink:0">🏫</div>
+      <div>
+        <div style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.9px;opacity:0.7">Class from September 2026</div>
+        <div style="font-size:1.15rem;font-weight:800;margin-top:2px">4C · Mrs Callaghan</div>
+        <div style="font-size:0.85rem;opacity:0.85;margin-top:1px">Room J11</div>
+      </div>
+    </div>
+
+    <div class="card" id="todayFormsCard" style="display:none">
+      <div class="card-title">📋 Parent forms to complete</div>
+      <div id="todayFormsBanner"></div>
+      <div id="todayForms"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">What Henry needs today</div>
+      <div id="todayNeeds"><div class="empty">Loading…</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Homework</div>
+      <div id="todayHw"><div class="empty">Loading…</div></div>
+    </div>
+
+    <div class="card" id="fixCard">
+      <div class="card-title">Upcoming fixtures</div>
+      <div id="todayFix"></div>
+    </div>
+
+    <div class="card" id="bkCard" style="display:none">
+      <div class="card-title">📖 Currently reading</div>
+      <div id="todayBk"></div>
+    </div>
+
+    <div class="card" id="kdCard">
+      <div class="card-title">Key dates</div>
+      <div id="todayKd"></div>
+    </div>
+  </div>
+
+  <!-- WEEK ───────────────────────────────────────────────────── -->
+  <div class="view" id="vWeek">
+    <div class="week-nav">
+      <button class="wk-btn" onclick="shiftWeek(-1)">← Prev</button>
+      <span class="wk-title" id="wkTitle"></span>
+      <button class="wk-btn" onclick="shiftWeek(1)">Next →</button>
+    </div>
+    <div id="weekGrid"></div>
+  </div>
+
+  <!-- MONTH ──────────────────────────────────────────────────── -->
+  <div class="view" id="vMonth">
+    <div class="week-nav">
+      <button class="wk-btn" onclick="shiftMonth(-1)">← Prev</button>
+      <span class="wk-title" id="moTitle"></span>
+      <button class="wk-btn" onclick="shiftMonth(1)">Next →</button>
+    </div>
+    <div class="month-grid" id="monthGrid"></div>
+    <div class="mo-legend">
+      <span><span class="mo-legend-sw" style="background:#fde8e8"></span>Homework</span>
+      <span><span class="mo-legend-sw" style="background:#ffe0e0"></span>Fixture</span>
+      <span><span class="mo-legend-sw" style="background:#f0e0ff"></span>Key date</span>
+      <span><span class="mo-legend-sw" style="background:#fdf3dc"></span>Wraparound</span>
+      <span><span class="mo-legend-sw" style="background:#dce8f5"></span>Sport day</span>
+      <span><span class="mo-legend-sw" style="background:#f0f4f8"></span>Holiday</span>
+    </div>
+  </div>
+
+  <!-- MANAGE ─────────────────────────────────────────────────── -->
+  <div class="view" id="vManage">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="swTab('hw', this)">Homework</button>
+      <button class="tab-btn" onclick="swTab('wa', this)">Wraparound</button>
+      <button class="tab-btn" onclick="swTab('fx', this)">Fixtures</button>
+      <button class="tab-btn" onclick="swTab('kd', this)">Dates</button>
+      <button class="tab-btn" onclick="swTab('bk', this)">📚 Books</button>
+      <button class="tab-btn" onclick="swTab('st', this)">📋 Setup</button>
+      <button class="tab-btn" onclick="swTab('im', this)">📧 Import</button>
+    </div>
+
+    <!-- Homework tab -->
+    <div class="tab-panel active" id="tHw">
+      <div class="card">
+        <div class="card-title">Add homework</div>
+        <div class="form-group">
+          <label>Subject</label>
+          <select id="hSub">
+            <option value="">Choose…</option>
+            <option>Maths</option><option>English</option><option>Reading</option>
+            <option>Spelling</option><option>Times Tables</option><option>MyMaths</option>
+            <option>History</option><option>Science</option><option>French</option>
+            <option>RS</option><option>Art</option><option>Computing</option>
+            <option>Project</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="hDesc" placeholder="e.g. Complete worksheet p.14–15">
+        </div>
+        <div class="row2">
+          <div class="form-group"><label>Set date</label><input type="date" id="hSet"></div>
+          <div class="form-group"><label>Due date</label><input type="date" id="hDue"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addHw()">Add Homework</button>
+      </div>
+      <div class="sec-title">All homework</div>
+      <div class="card"><div id="allHw"><div class="empty">Loading…</div></div></div>
+    </div>
+
+    <!-- Wraparound tab -->
+    <div class="tab-panel" id="tWa">
+      <div class="card">
+        <div class="card-title">Wraparound care — set days</div>
+        <p style="font-size:0.83rem;color:var(--muted);margin-bottom:12px">
+          Default: bus from Bowdon (morning) and bus home to Barry Rise (afternoon).
+          Toggle the days he's in wraparound care instead, then save. Syncs instantly to all devices.
+        </p>
+        <div class="week-nav" style="margin-bottom:10px">
+          <button class="wk-btn" onclick="shiftWaWeek(-1)">← Prev</button>
+          <span class="wk-title" id="waWkTitle"></span>
+          <button class="wk-btn" onclick="shiftWaWeek(1)">Next →</button>
+        </div>
+        <div style="margin-bottom:13px">
+          <div class="card-title" style="margin-bottom:7px">Morning (8 am drop-off)</div>
+          <div class="wrap-grid" id="waMorn"></div>
+        </div>
+        <div style="margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:7px">After school (until pick-up, max 6 pm)</div>
+          <div class="wrap-grid" id="waAftn"></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveWa()">Save Wraparound</button>
+      </div>
+    </div>
+
+    <!-- Fixtures tab -->
+    <div class="tab-panel" id="tFx">
+      <div class="card">
+        <div class="card-title">Add fixture / sport event</div>
+        <div class="row2">
+          <div class="form-group"><label>Date</label><input type="date" id="fxDate"></div>
+          <div class="form-group"><label>Meet time</label><input type="time" id="fxTime" value="15:30"></div>
+        </div>
+        <div class="form-group">
+          <label>Sport</label>
+          <select id="fxSport">
+            <option>Rugby</option><option>Football</option><option>Hockey</option>
+            <option>Cricket</option><option>Swimming</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Opponent / description</label>
+          <input type="text" id="fxOpp" placeholder="e.g. Away vs Bolton School">
+        </div>
+        <div class="row2">
+          <div class="form-group"><label>Venue</label><input type="text" id="fxVenue" placeholder="MGS / Away"></div>
+          <div class="form-group"><label>Approx return</label><input type="time" id="fxRet" value="17:30"></div>
+        </div>
+        <div class="form-group">
+          <label>Kit notes</label>
+          <input type="text" id="fxKit" placeholder="e.g. Full games kit + studded boots">
+        </div>
+        <button class="btn btn-primary" onclick="addFx()">Add Fixture</button>
+      </div>
+      <div class="sec-title">Upcoming fixtures</div>
+      <div class="card"><div id="allFx"><div class="empty">Loading…</div></div></div>
+    </div>
+
+    <!-- Key dates tab -->
+    <div class="tab-panel" id="tKd">
+
+      <!-- Term Dates 2026-27 (static from MGS website) -->
+      <div class="sec-title">Term Dates 2026–27</div>
+      <div class="card" style="padding:16px">
+
+        <div class="term-block">
+          <div class="term-block-hdr">
+            <span style="font-weight:800;font-size:0.92rem">Michaelmas Term 2026</span>
+            <span class="term-season">Autumn</span>
+          </div>
+          <div class="term-rows">
+            <div class="term-row"><span class="term-row-lbl">Term starts</span><span class="term-row-dates">Thu 3 Sep 2026</span></div>
+            <div class="term-row tr-closed"><span class="term-row-lbl">Staff CPD — no school</span><span class="term-row-dates">Mon 21 Sep 2026</span></div>
+            <div class="term-row tr-hol"><span class="term-row-lbl">Half-term</span><span class="term-row-dates">19 – 30 Oct 2026</span></div>
+            <div class="term-row"><span class="term-row-lbl">Term ends</span><span class="term-row-dates">Thu 17 Dec 2026</span></div>
+            <div class="term-row tr-hol"><span class="term-row-lbl">Christmas holidays</span><span class="term-row-dates">18 Dec – 1 Jan 2027</span></div>
+          </div>
+        </div>
+
+        <div class="term-block">
+          <div class="term-block-hdr">
+            <span style="font-weight:800;font-size:0.92rem">Lent Term 2027</span>
+            <span class="term-season">Spring</span>
+          </div>
+          <div class="term-rows">
+            <div class="term-row"><span class="term-row-lbl">Term starts</span><span class="term-row-dates">Mon 4 Jan 2027</span></div>
+            <div class="term-row tr-closed"><span class="term-row-lbl">Entrance exam — no school</span><span class="term-row-dates">Wed 13 Jan 2027</span></div>
+            <div class="term-row tr-hol"><span class="term-row-lbl">Half-term</span><span class="term-row-dates">15 – 19 Feb 2027</span></div>
+            <div class="term-row"><span class="term-row-lbl">Term ends</span><span class="term-row-dates">Thu 25 Mar 2027</span></div>
+            <div class="term-row tr-hol"><span class="term-row-lbl">Easter holidays</span><span class="term-row-dates">26 Mar – 9 Apr 2027</span></div>
+          </div>
+        </div>
+
+        <div class="term-block" style="margin-bottom:0">
+          <div class="term-block-hdr">
+            <span style="font-weight:800;font-size:0.92rem">Summer Term 2027</span>
+            <span class="term-season" style="background:var(--gold);color:var(--navy)">Summer</span>
+          </div>
+          <div class="term-rows">
+            <div class="term-row"><span class="term-row-lbl">Term starts</span><span class="term-row-dates">Sun 12 Apr 2027</span></div>
+            <div class="term-row tr-closed"><span class="term-row-lbl">Bank Holiday</span><span class="term-row-dates">Mon 3 May 2027</span></div>
+            <div class="term-row tr-closed"><span class="term-row-lbl">Exam admin — no school</span><span class="term-row-dates">Fri 28 May 2027</span></div>
+            <div class="term-row tr-hol"><span class="term-row-lbl">Half-term</span><span class="term-row-dates">31 May – 4 Jun 2027</span></div>
+            <div class="term-row"><span class="term-row-lbl">Term ends</span><span class="term-row-dates">Tue 1 Jul 2027</span></div>
+            <div class="term-row tr-hol"><span class="term-row-lbl">Summer holidays</span><span class="term-row-dates">2 Jul – 31 Aug 2027</span></div>
+          </div>
+        </div>
+
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:14px;text-align:center">Source: mgs.org/news-and-events/term-dates</p>
+      </div>
+
+      <div class="card" id="kdSeedCard" style="background:#eaf4ff;border:1.5px solid #b8d8f8">
+        <div class="card-title" style="color:var(--navy)">📅 Welcome Pack dates</div>
+        <p style="font-size:0.83rem;color:var(--muted);margin-bottom:12px">
+          Add all key dates from the Welcome Pack: forms deadline, New Starter Afternoon, mouthguard fittings, term start, Parent Info Evening etc. Safe to run more than once — duplicates are skipped.
+        </p>
+        <button class="btn btn-primary" onclick="seedMgsDates()">Load Welcome Pack dates</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Add key date</div>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="kdTitle" placeholder="e.g. Parents' Evening">
+        </div>
+        <div class="row2">
+          <div class="form-group"><label>Date</label><input type="date" id="kdDate"></div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="kdCat">
+              <option value="school">School</option>
+              <option value="trip">Trip</option>
+              <option value="medical">Medical</option>
+              <option value="event">Event</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="kdNotes" placeholder="Optional…">
+        </div>
+        <button class="btn btn-primary" onclick="addKd()">Add Date</button>
+      </div><!-- /Add key date card -->
+      <div class="sec-title">Upcoming key dates</div>
+      <div class="card"><div id="allKd"><div class="empty">Loading…</div></div></div>
+    </div>
+
+    <!-- Books tab -->
+    <div class="tab-panel" id="tBk">
+
+      <div class="card" id="bkSeedCard" style="display:none;background:#eaf4ff;border:1.5px solid #b8d8f8">
+        <div class="card-title" style="color:var(--navy)">📚 Year 4 Reading List</div>
+        <p style="font-size:0.83rem;color:var(--muted);margin-bottom:12px">
+          Load a curated set of Year 4-appropriate books to get started. You can edit, add, or remove any of them.
+        </p>
+        <button class="btn btn-primary" onclick="seedBookList()">Load Year 4 reading list</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Add book</div>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="bkTitle" placeholder="e.g. Charlotte's Web">
+        </div>
+        <div class="form-group">
+          <label>Author</label>
+          <input type="text" id="bkAuthor" placeholder="e.g. E.B. White">
+        </div>
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <input type="text" id="bkNotes" placeholder="e.g. Suggested by Miss Smith">
+        </div>
+        <button class="btn btn-primary" onclick="addBook()">Add Book</button>
+      </div>
+
+      <div class="sec-title">Currently reading</div>
+      <div class="card"><div id="bkReading"><div class="empty">Nothing in progress</div></div></div>
+
+      <div class="sec-title">To read</div>
+      <div class="card"><div id="bkTodo"><div class="empty">Loading…</div></div></div>
+
+      <div class="sec-title">Finished <span id="bkReadCount" style="color:var(--muted);font-weight:600"></span></div>
+      <div class="card"><div id="bkRead"><div class="empty">No books finished yet</div></div></div>
+    </div>
+
+    <!-- Setup / Reference tab -->
+    <div class="tab-panel" id="tSt">
+
+      <!-- Forms checklist -->
+      <div class="card">
+        <div class="card-title">📋 Forms to complete</div>
+        <div id="formsDeadline"></div>
+        <div id="formsList"><div class="empty">Loading…</div></div>
+        <div id="formsSeed" style="display:none;margin-top:12px">
+          <button class="btn btn-secondary" onclick="seedForms()">Load forms checklist from Welcome Pack</button>
+        </div>
+      </div>
+
+      <!-- School day -->
+      <div class="card">
+        <div class="card-title">🕘 School day — Years 3 & 4</div>
+        <table class="info-table">
+          <tr><td>Doors open</td><td>8:00 am</td></tr>
+          <tr><td>Registration</td><td>9:00 – 9:10</td></tr>
+          <tr><td>Period 1</td><td>9:10 – 10:00</td></tr>
+          <tr><td>Period 2</td><td>10:00 – 10:50</td></tr>
+          <tr><td>Break</td><td>10:50 – 11:10</td></tr>
+          <tr><td>Period 3</td><td>11:10 – 11:55</td></tr>
+          <tr><td>Lunch</td><td>11:55 – 13:00</td></tr>
+          <tr><td>Period 4</td><td>13:05 – 13:50</td></tr>
+          <tr><td>Assembly / Form</td><td>13:50 – 14:10</td></tr>
+          <tr><td>Period 5</td><td>14:10 – 14:55</td></tr>
+          <tr><td>Period 6</td><td>14:55 – 15:35</td></tr>
+          <tr><td>After school</td><td>From 15:45</td></tr>
+        </table>
+        <p class="info-note">Year 3 & 4 cooked lunch is included in fees. Morning break: fruit only — no nuts, sweets, crisps, biscuits.</p>
+      </div>
+
+      <!-- Class / form tutor -->
+      <div class="card">
+        <div class="card-title">🏫 Henry's Class — September 2026</div>
+        <table class="info-table">
+          <tr><td>Form</td><td><strong>4C</strong></td></tr>
+          <tr><td>Form tutor</td><td><strong>Mrs Callaghan</strong></td></tr>
+          <tr><td>Room</td><td><strong>J11</strong></td></tr>
+        </table>
+        <p class="info-note">Year 4 form tutors: Miss Atty and Mrs Callaghan. Parents meet form tutors at the Curriculum Briefing on Thu 10 Sep 2026.</p>
+      </div>
+
+      <!-- Parking / Rectory Gate -->
+      <div class="card">
+        <div class="card-title">🚗 Parking — Rectory Gate</div>
+        <ul class="info-list">
+          <li>Park around <strong>Danes Road / Brighton Grove</strong> (postcode <strong>M14 5JT</strong>)</li>
+          <li>Walk via the footpath to the <strong>MGS Rectory Gate</strong>, then to school</li>
+          <li>Gate open <strong>7:50–9:15 am</strong> every morning</li>
+          <li>Gate open <strong>3:20–4:05 pm</strong> every afternoon</li>
+          <li>Park considerately — avoid the busy junction and the cul-de-sac</li>
+        </ul>
+        <p class="info-note">See Welcome Pack p.31. On-site parking is very limited. For special events (e.g. New Starter Afternoon) the gate may open at different times — check the event notes.</p>
+      </div>
+
+      <!-- Wraparound -->
+      <div class="card">
+        <div class="card-title">🌅 Wraparound Care</div>
+        <ul class="info-list">
+          <li>Runs 8:00 am – before school, and after school until 6:00 pm</li>
+          <li><strong>No charge, no booking required</strong></li>
+          <li>After-school session starts with homework time</li>
+          <li>Light snack provided in the afternoon — breakfast at home in the morning</li>
+          <li>Must be dropped off and collected by an adult</li>
+          <li><strong>£15 per 15-minute period</strong> charged after 6:00 pm</li>
+        </ul>
+      </div>
+
+      <!-- Uniform -->
+      <div class="card">
+        <div class="card-title">👔 Junior School Uniform</div>
+        <ul class="info-list">
+          <li>Dark blue blazer with Junior School badge</li>
+          <li>School tie (Junior School design)</li>
+          <li>White shirt — long sleeve winter, short sleeve summer</li>
+          <li>Trousers — plain dark grey or black (conventional cut). Grey school shorts above the knee allowed</li>
+          <li>Jumper (optional) — V-neck navy, with or without owl motif. No sweatshirts</li>
+          <li>Shoes — plain black leather, polished. No trainers, no logos</li>
+          <li>Plain grey socks</li>
+          <li>Outdoor wear — raincoat / cagoule / anorak; plain dark accessories (no football scarves)</li>
+          <li>Two bags — one for books, one for sportswear</li>
+        </ul>
+        <p class="info-note">Supplier: Monkhouse (stores in Altrincham, Cheadle, Bury). All items must be labelled. Parents' Society holds second-hand sales — first one 19 June 2026.</p>
+      </div>
+
+      <!-- PE & Games Kit -->
+      <div class="card">
+        <div class="card-title">⚽ PE & Games Kit — Compulsory</div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:8px"><strong>From Monkhouse:</strong></p>
+        <ul class="info-list">
+          <li>Reversible games jersey</li>
+          <li>Long socks</li>
+          <li>Shorts</li>
+          <li>Crew-neck T-shirt</li>
+        </ul>
+        <p style="font-size:0.82rem;color:var(--muted);margin:12px 0 8px"><strong>From any high-street store:</strong></p>
+        <ul class="info-list">
+          <li>Gym shoes / clean trainers (indoor)</li>
+          <li>Second pair of training shoes (outdoor, ideally for astro)</li>
+          <li>White sports socks (indoor PE)</li>
+          <li>Plain black/navy swimming trunks (tight-fitting)</li>
+          <li>Swimming goggles</li>
+          <li>Shin pads — rugby & football</li>
+          <li>Studded boots — rugby & football</li>
+          <li>Mouth guard (highly recommended — see OPRO dates below)</li>
+        </ul>
+        <p class="info-note">Wednesday is Year 4 Sport day — full kit needed. Optional Castore branded items available; only buy if Henry joins a team.</p>
+      </div>
+
+      <!-- Equipment -->
+      <div class="card">
+        <div class="card-title">✏️ Other Equipment</div>
+        <ul class="info-list">
+          <li>Reusable water bottle</li>
+          <li>Blue handwriting pen (not biro)</li>
+          <li>Green pen</li>
+          <li>H or 2H pencils, sharpener, rubber</li>
+          <li>Small set of coloured pencils</li>
+          <li>30 cm ruler</li>
+          <li>Basic geometry set</li>
+          <li>Glue stick</li>
+          <li>Safety scissors</li>
+          <li>Pocket Oxford English Dictionary</li>
+        </ul>
+        <p class="info-note">Label everything with permanent name labels.</p>
+      </div>
+
+      <!-- Mouthguards -->
+      <div class="card">
+        <div class="card-title">🦷 OPRO Mouthguard Fittings</div>
+        <ul class="info-list">
+          <li><strong>Thursday 3 September</strong> · 11:00 – 14:00</li>
+          <li><strong>Monday 7 September</strong> · 10:00 – 14:30</li>
+        </ul>
+        <p class="info-note">Strongly recommended — all boys play rugby/hockey. Order ahead at <a class="info-link" href="https://www.oproschools.com" target="_blank">oproschools.com</a>. Prices from £41.99. Includes complimentary Snap-Fit while waiting.</p>
+      </div>
+
+      <!-- Homework rules -->
+      <div class="card">
+        <div class="card-title">📚 Homework — Year 4</div>
+        <ul class="info-list">
+          <li><strong>20–30 minutes per day</strong> plus reading, spelling, mental maths</li>
+          <li>No new homework set on Wednesdays — catch-up day for reading and projects</li>
+          <li>Homework recorded in independent learning planner</li>
+          <li>If too difficult after a reasonable attempt — note from home</li>
+          <li>Times Tables Rock Stars & MyMaths encouraged daily</li>
+        </ul>
+      </div>
+
+      <!-- Contacts -->
+      <div class="card">
+        <div class="card-title">📞 Key Contacts</div>
+        <table class="info-table">
+          <tr><td>Junior School Office</td><td>0161 224 7201<br><a class="info-link" href="mailto:juniorschool@mgs.org">juniorschool@mgs.org</a></td></tr>
+          <tr><td>Pupil absence</td><td><a class="info-link" href="mailto:pupilabsence@mgs.org">pupilabsence@mgs.org</a></td></tr>
+          <tr><td>Medical Room</td><td>0161 224 7201 ext. 222<br><a class="info-link" href="mailto:medicalupdate@mgs.org">medicalupdate@mgs.org</a></td></tr>
+          <tr><td>Fees</td><td><a class="info-link" href="mailto:fees@mgs.org">fees@mgs.org</a></td></tr>
+          <tr><td>Transport</td><td><a class="info-link" href="mailto:transport@mgs.org">transport@mgs.org</a></td></tr>
+          <tr><td>Catering (allergies)</td><td>Richard Palombella<br><a class="info-link" href="mailto:r.palombella@mgs.org">r.palombella@mgs.org</a></td></tr>
+          <tr><td>Music admin</td><td><a class="info-link" href="mailto:musicadmin@mgs.org">musicadmin@mgs.org</a></td></tr>
+          <tr><td>OPRO mouthguards</td><td>01442 430690<br><a class="info-link" href="mailto:info@oprogroup.com">info@oprogroup.com</a></td></tr>
+        </table>
+      </div>
+
+      <!-- School address -->
+      <div class="card">
+        <div class="card-title">📍 Address</div>
+        <p style="font-size:0.9rem;line-height:1.5">
+          The Manchester Grammar School<br>
+          Old Hall Lane<br>
+          Manchester M13 0XT
+        </p>
+        <p class="info-note">Junior School Instagram: @mgs_juniors · Whole School: @mgs_1515</p>
+      </div>
+
+    </div>
+
+    <!-- Import tab -->
+    <div class="tab-panel" id="tIm">
+
+      <!-- API key status (shown when key exists) -->
+      <div class="card" id="imKeyStatus" style="display:none;background:#f0f4f8;border:1.5px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div>
+            <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:2px">Claude API Key</div>
+            <div id="imKeyPreview" style="font-size:0.85rem;font-family:monospace;color:var(--text)"></div>
+          </div>
+          <button onclick="changeImApiKey()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-size:0.8rem;font-weight:700;color:var(--navy);cursor:pointer;white-space:nowrap">Change</button>
+        </div>
+      </div>
+
+      <!-- API key entry (shown when no key or changing) -->
+      <div class="card" id="imKeyCard" style="display:none;background:#fdf3dc;border:1.5px solid #f0d878">
+        <div class="card-title" style="color:#b7950b">Anthropic API Key needed</div>
+        <p style="font-size:0.83rem;color:var(--muted);margin-bottom:12px">
+          The import feature uses Claude AI. Enter your API key once — it's stored only on this device.
+          Get a free key at <strong>console.anthropic.com</strong>.
+        </p>
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="password" id="imApiKeyInput" placeholder="sk-ant-api03-…">
+        </div>
+        <button class="btn btn-primary" onclick="saveImApiKey()">Save Key</button>
+      </div>
+
+      <!-- Import form -->
+      <div class="card">
+        <div class="card-title">Import from MGS email</div>
+        <p style="font-size:0.83rem;color:var(--muted);margin-bottom:14px">
+          Paste the email body below, or upload a PDF attachment.
+          Claude will extract homework, fixtures and key dates — you confirm before anything is added.
+        </p>
+        <div class="form-group">
+          <label>Email body — paste here</label>
+          <textarea id="imText" rows="7" placeholder="Paste the full email text here…"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Or upload a PDF / image attachment</label>
+          <input type="file" id="imFile" accept=".pdf,.jpg,.jpeg,.png" style="padding:8px">
+        </div>
+        <button class="btn btn-primary" id="imParseBtn" onclick="parseEmail()">Extract from email</button>
+      </div>
+
+      <!-- Preview -->
+      <div id="imPreview" style="display:none">
+        <div id="imPreviewContent"></div>
+        <button class="btn btn-primary" onclick="confirmImport()">Add selected items to planner</button>
+        <button class="btn btn-secondary" style="margin-top:8px" onclick="cancelImport()">Cancel</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NAV BAR -->
+  <nav class="nav">
+    <button class="nav-btn active" id="nToday" onclick="showView('Today')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9,22 9,12 15,12 15,22"/>
+      </svg>
+      Today
+    </button>
+    <button class="nav-btn" id="nWeek" onclick="showView('Week')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      Week
+    </button>
+    <button class="nav-btn" id="nMonth" onclick="showView('Month')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+        <line x1="7" y1="14" x2="7.01" y2="14"/>
+        <line x1="12" y1="14" x2="12.01" y2="14"/>
+        <line x1="17" y1="14" x2="17.01" y2="14"/>
+        <line x1="7" y1="18" x2="7.01" y2="18"/>
+        <line x1="12" y1="18" x2="12.01" y2="18"/>
+        <line x1="17" y1="18" x2="17.01" y2="18"/>
+      </svg>
+      Month
+    </button>
+    <button class="nav-btn" id="nManage" onclick="showView('Manage')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <line x1="8" y1="6" x2="21" y2="6"/>
+        <line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/>
+        <line x1="3" y1="12" x2="3.01" y2="12"/>
+        <line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      Manage
+    </button>
+    <button class="nav-btn" id="nOwl" onclick="location.href='owl/'" title="Owl Academy — Henry's training missions">
+      <span style="font-size:19px;line-height:1">🦉</span>
+      Academy
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ─── PIN SCRIPT (no Firebase dependency) ───────────────────────── -->
+<script>
+// Recovery: visit ?reset=1 to wipe PIN + API key and start fresh.
+if (location.search.indexOf('reset=1') !== -1) {
+  localStorage.removeItem('mgs_pin');
+  localStorage.removeItem('mgs_claude_key');
+  sessionStorage.removeItem('mgs_unlocked');
+  location.replace(location.pathname); // strip query, reload clean
+}
+console.log('Henry @ MGS — build v3 (PHP/SQLite, no Firebase) — loaded ' + new Date().toISOString());
+(function () {
+  var buf = '', mode = 'unlock', first = '';
+
+  function el(id) { return document.getElementById(id); }
+
+  function dots(state) {
+    el('pinDots').querySelectorAll('.pin-dot').forEach(function (d, i) {
+      d.classList.toggle('filled', i < buf.length);
+      d.classList.toggle('error',  state === 'error');
+    });
+  }
+
+  function shake() {
+    buf = '';
+    dots('error');
+    var dd = el('pinDots');
+    dd.classList.add('pin-shake');
+    setTimeout(function () { dd.classList.remove('pin-shake'); dots(); }, 400);
+  }
+
+  function hidePinAndGo() {
+    el('pinScreen').style.display = 'none';
+    sessionStorage.setItem('mgs_unlocked', '1');
+    if (window._startApp) window._startApp();
+    else window._pinOk = true;
+  }
+
+  async function hash(pin) {
+    try {
+      var d = new TextEncoder().encode(pin + 'mgs-henry-2026');
+      var b = await crypto.subtle.digest('SHA-256', d);
+      return Array.from(new Uint8Array(b)).map(function (x) {
+        return x.toString(16).padStart(2, '0');
+      }).join('');
+    } catch (e) {
+      // Fallback for non-HTTPS (no crypto.subtle)
+      var s = pin + 'mgs-henry-2026', h = 0;
+      for (var i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+      return 'fb-' + Math.abs(h).toString(16);
+    }
+  }
+
+  async function submit() {
+    var h = await hash(buf);
+    if (mode === 'setup') {
+      first = h; buf = ''; dots();
+      mode = 'confirm';
+      el('pinTitle').textContent    = 'Confirm PIN';
+      el('pinSubtitle').textContent = 'Enter the same PIN again';
+
+    } else if (mode === 'confirm') {
+      if (h === first) {
+        localStorage.setItem('mgs_pin', h);
+        hidePinAndGo();
+        if (window._toast) window._toast('PIN set ✓');
+      } else {
+        shake();
+        el('pinSubtitle').textContent = "PINs don't match — try again";
+        setTimeout(function () {
+          mode = 'setup'; first = '';
+          el('pinTitle').textContent    = 'Create your PIN';
+          el('pinSubtitle').textContent = 'Choose a 6-digit PIN to protect the app';
+        }, 1200);
+      }
+
+    } else if (mode === 'unlock') {
+      if (h === localStorage.getItem('mgs_pin')) hidePinAndGo();
+      else shake();
+
+    } else if (mode === 'verify-change') {
+      if (h === localStorage.getItem('mgs_pin')) {
+        buf = ''; dots(); mode = 'new-pin';
+        el('pinTitle').textContent    = 'New PIN';
+        el('pinSubtitle').textContent = 'Choose your new 6-digit PIN';
+      } else shake();
+
+    } else if (mode === 'new-pin') {
+      first = h; buf = ''; dots(); mode = 'new-confirm';
+      el('pinTitle').textContent    = 'Confirm new PIN';
+      el('pinSubtitle').textContent = 'Enter the new PIN again';
+
+    } else if (mode === 'new-confirm') {
+      if (h === first) {
+        localStorage.setItem('mgs_pin', h);
+        el('pinScreen').style.display = 'none';
+        if (window._toast) window._toast('PIN changed ✓');
+      } else {
+        shake();
+        el('pinSubtitle').textContent = "PINs don't match — try again";
+        setTimeout(function () {
+          mode = 'new-pin'; first = '';
+          el('pinTitle').textContent    = 'New PIN';
+          el('pinSubtitle').textContent = 'Choose your new 6-digit PIN';
+        }, 1200);
+      }
+    }
+  }
+
+  window.pinKey   = function (d) {
+    if (buf.length >= 6) return;
+    buf += d; dots();
+    if (buf.length === 6) setTimeout(submit, 100);
+  };
+  window.pinBack  = function () { buf = buf.slice(0, -1); dots(); };
+  window.pinClear = function () { buf = ''; dots(); };
+
+  window.startChangePin = function () {
+    if (window.closeSettings) window.closeSettings();
+    mode = 'verify-change'; buf = ''; dots();
+    el('pinTitle').textContent    = 'Verify current PIN';
+    el('pinSubtitle').textContent = 'Enter your current PIN first';
+    el('pinScreen').style.display = 'flex';
+  };
+
+  document.addEventListener('keydown', function (e) {
+    if (!el('pinScreen') || el('pinScreen').style.display === 'none') return;
+    if (e.key >= '0' && e.key <= '9') window.pinKey(e.key);
+    else if (e.key === 'Backspace') window.pinBack();
+    else if (e.key === 'Escape')    window.pinClear();
+  });
+
+  // ── Initialise on DOM ready ─────────────────────────────────────
+  function init() {
+    var stored   = localStorage.getItem('mgs_pin');
+    var unlocked = sessionStorage.getItem('mgs_unlocked') === '1';
+
+    if (unlocked) {
+      el('pinScreen').style.display = 'none';
+      if (window._startApp) window._startApp();
+      else window._pinOk = true;   // main script will see this and start
+      return;
+    }
+    if (!stored) {
+      mode = 'setup';
+      el('pinTitle').textContent    = 'Create your PIN';
+      el('pinSubtitle').textContent = 'Choose a 6-digit PIN to protect the app';
+    }
+    // else: unlock mode — default HTML already says "Enter your PIN"
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+}());
+</script>
+
+<!-- ─── JAVASCRIPT ────────────────────────────────────────────────── -->
+<script>
+
+// ── MGS 2026-27 Term Dates ─────────────────────────────────────────
+const TERMS = [
+  { name:'Michaelmas', start:'2026-09-03', end:'2026-12-17',
+    halfTerm:{ start:'2026-10-19', end:'2026-10-30' } },
+  { name:'Lent',       start:'2027-01-04', end:'2027-03-25',
+    halfTerm:{ start:'2027-02-15', end:'2027-02-19' } },
+  { name:'Summer',     start:'2027-04-12', end:'2027-07-01',
+    halfTerm:{ start:'2027-05-31', end:'2027-06-04' } },
+];
+const HOLIDAYS = [
+  { name:'Summer Holidays',  icon:'☀️',  start:'2026-07-02', end:'2026-09-02' },
+  { name:'Half-term',        icon:'🍂',  start:'2026-10-19', end:'2026-10-30' },
+  { name:'Christmas',        icon:'🎄',  start:'2026-12-18', end:'2027-01-01' },
+  { name:'Half-term',        icon:'❄️',  start:'2027-02-15', end:'2027-02-19' },
+  { name:'Easter',           icon:'🐣',  start:'2027-03-26', end:'2027-04-09' },
+  { name:'Half-term',        icon:'🌸',  start:'2027-05-31', end:'2027-06-04' },
+  { name:'Summer Holidays',  icon:'☀️',  start:'2027-07-02', end:'2027-08-31' },
+];
+const CLOSED_DAYS = [
+  { name:'Staff CPD Day',        date:'2026-09-21' },
+  { name:'Entrance Examination', date:'2027-01-13' },
+  { name:'Bank Holiday',         date:'2027-05-03' },
+  { name:'Exam Administration',  date:'2027-05-28' },
+];
+
+function getDayStatus(dateStr) {
+  const dow = pd(dateStr).getDay();
+  if (dow === 0 || dow === 6) return { type:'weekend', label:'Weekend', icon:'🏡' };
+  const cd = CLOSED_DAYS.find(c => c.date === dateStr);
+  if (cd) return { type:'closed', label:cd.name, icon:'🔒' };
+  const hol = HOLIDAYS.find(h => dateStr >= h.start && dateStr <= h.end);
+  if (hol) return { type:'holiday', label:hol.name, icon:hol.icon };
+  const term = TERMS.find(t => dateStr >= t.start && dateStr <= t.end);
+  if (term) return { type:'school', label:term.name+' Term', termName:term.name };
+  return { type:'holiday', label:'School holidays', icon:'☀️' };
+}
+
+function getTermInfo(dateStr) {
+  const term = TERMS.find(t => dateStr >= t.start && dateStr <= t.end);
+  if (!term) return null;
+  if (term.halfTerm && dateStr >= term.halfTerm.start && dateStr <= term.halfTerm.end) return null;
+  // Count weeks from term start, skipping half-term
+  const tStart = pd(term.start);
+  const tDow   = tStart.getDay();
+  const tMon   = new Date(tStart);
+  tMon.setDate(tStart.getDate() - (tDow === 0 ? 6 : tDow - 1));
+  const curDate = pd(dateStr);
+  const curDow  = curDate.getDay();
+  const curMon  = new Date(curDate);
+  curMon.setDate(curDate.getDate() - (curDow === 0 ? 6 : curDow - 1));
+  let weeks = Math.round((curMon - tMon) / 604800000) + 1;
+  // Subtract half-term if we're past it
+  if (term.halfTerm && dateStr > term.halfTerm.end) {
+    const htStart = pd(term.halfTerm.start);
+    const htDow   = htStart.getDay();
+    const htMon   = new Date(htStart);
+    htMon.setDate(htStart.getDate() - (htDow === 0 ? 6 : htDow - 1));
+    const htEnd  = pd(term.halfTerm.end);
+    const htEndDow = htEnd.getDay();
+    const htFri  = new Date(htEnd);
+    htFri.setDate(htEnd.getDate() + (htEndDow === 0 ? 0 : 5 - htEndDow));
+    const htNextMon = new Date(htFri); htNextMon.setDate(htFri.getDate() + 3);
+    const htDiff = Math.round((htNextMon - htMon) / 604800000);
+    weeks -= htDiff;
+  }
+  return { term:term.name, week:Math.max(1, weeks) };
+}
+
+function nextSchoolDay(dateStr) {
+  let d = pd(dateStr); d.setDate(d.getDate() + 1);
+  for (let i = 0; i < 90; i++) {
+    const s = ds(d);
+    const st = getDayStatus(s);
+    if (st.type === 'school') return s;
+    d.setDate(d.getDate() + 1);
+  }
+  return null;
+}
+
+// ── API helpers ────────────────────────────────────────────────────
+const API_URL = 'api.php';
+const API_KEY = 'henry-mgs-2026-xK9mP';
+
+function apiFetch(method, col, id, data) {
+  let url = `${API_URL}?col=${col}`;
+  if (id) url += `&id=${encodeURIComponent(id)}`;
+  const opts = { method, headers: { 'X-Api-Key': API_KEY } };
+  if (data !== undefined) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(data);
+  }
+  return fetch(url, opts).then(r => {
+    if (!r.ok) throw new Error(`API ${r.status}`);
+    return r.json();
+  });
+}
+const apiGet   = col          => apiFetch('GET',    col);
+const apiPost  = (col, data)  => apiFetch('POST',   col, '', data);
+const apiPut   = (col, id, d) => apiFetch('PUT',    col, id, d);
+const apiPatch = (col, id, d) => apiFetch('PATCH',  col, id, d);
+const apiDel   = (col, id)    => apiFetch('DELETE', col, id);
+
+// ── State ──────────────────────────────────────────────────────────
+const S = {
+  hw:  [],
+  fx:  [],
+  kd:  [],
+  bk:  [],           // books
+  fm:  [],           // forms checklist
+  wa:  {},           // { 'YYYY-MM-DD': { morning:[bool×5], afternoon:[bool×5] } }
+  wkOff:  0,        // week offset for week view
+  monOff: 0,        // month offset for month view
+  waOff:  0,        // week offset for wraparound manager
+};
+
+// ── Helpers ────────────────────────────────────────────────────────
+const qs  = id => document.getElementById(id);
+const tod = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const ds  = d  => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;  // Date → 'YYYY-MM-DD' (local time)
+const pd  = s  => { const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d); };
+const diff = s => Math.round((pd(s) - tod()) / 86400000);
+
+function fmt(s, opts) {
+  return pd(s).toLocaleDateString('en-GB', opts);
+}
+
+// Format an ISO timestamp ("2026-05-14T13:24:11.000Z") into a friendly relative string
+function fmtDoneAt(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const now = new Date();
+  const days = Math.round((d.setHours(0,0,0,0) - new Date(now.getFullYear(),now.getMonth(),now.getDate())) / 86400000);
+  const orig = new Date(iso);
+  const time = orig.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+  let datePart;
+  if (days === 0) datePart = 'today';
+  else if (days === -1) datePart = 'yesterday';
+  else if (days > -7 && days < 0) datePart = orig.toLocaleDateString('en-GB', {weekday:'long'});
+  else datePart = orig.toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short'});
+  return `${datePart} at ${time}`;
+}
+
+function weekDates(off = 0) {
+  const d = tod();
+  const day = d.getDay();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - (day === 0 ? 6 : day - 1) + off * 7);
+  return Array.from({length: 5}, (_, i) => {
+    const x = new Date(mon); x.setDate(mon.getDate() + i); return x;
+  });
+}
+
+function weekKey(off = 0) { return ds(weekDates(off)[0]); }
+
+// ── Init ────────────────────────────────────────────────────────────
+function init() {
+  qs('mainApp').style.display = '';
+  setupHeader();
+  loadAll();
+  setInterval(loadAll, 30000); // poll every 30 s — adequate for a family planner
+}
+
+// ── Settings sheet ──────────────────────────────────────────────────
+window.openSettings  = () => { qs('settingsOverlay').classList.add('open'); };
+window.closeSettings = () => { qs('settingsOverlay').classList.remove('open'); };
+
+
+// ── Header ──────────────────────────────────────────────────────────
+function setupHeader() {
+  const now = new Date();
+  const hr = now.getHours();
+  const greet = hr < 12 ? 'Good morning!' : hr < 17 ? 'Good afternoon!' : 'Good evening!';
+  qs('greeting').textContent = greet;
+  const full = now.toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  qs('greetDate').textContent = full;
+  qs('hdrDate').textContent   = now.toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long'});
+
+  // Show term/holiday info below date
+  const todStr = ds(now);
+  const status = getDayStatus(todStr);
+  const termEl = document.createElement('div');
+  termEl.className = 'hdr-term';
+  if (status.type === 'school') {
+    const ti = getTermInfo(todStr);
+    termEl.textContent = ti ? `${ti.term} Term · Week ${ti.week}` : status.label;
+  } else if (status.type === 'holiday' || status.type === 'closed') {
+    const next = nextSchoolDay(todStr);
+    const daysBack = next ? Math.round((pd(next) - now) / 86400000) : null;
+    const backStr = daysBack === 1 ? 'Back tomorrow' : daysBack ? `Back in ${daysBack} days` : '';
+    termEl.textContent = `${status.icon} ${status.label}${backStr ? ' · ' + backStr : ''}`;
+  }
+  qs('hdrDate').after(termEl);
+
+  const tom = new Date(); tom.setDate(tom.getDate() + 1);
+  qs('hSet').value   = todStr;
+  qs('hDue').value   = ds(tom);
+  qs('fxDate').value = todStr;
+  qs('kdDate').value = todStr;
+}
+
+// ── Data loading (replaces Firebase subscriptions) ──────────────────
+async function loadAll() {
+  const todStr = ds(new Date());
+  try {
+    const [hw, fx, kd, wa, bk, fm] = await Promise.all([
+      apiGet('homework'),
+      apiGet('fixtures'),
+      apiGet('keyDates'),
+      apiGet('wraparound'),
+      apiGet('books'),
+      apiGet('forms'),
+    ]);
+    S.hw = hw;
+    S.fx = fx.filter(f => f.date >= todStr).sort((a,b) => a.date.localeCompare(b.date));
+    S.kd = kd.filter(k => k.date >= todStr).sort((a,b) => a.date.localeCompare(b.date));
+    S.bk = bk;
+    S.fm = fm;
+    // Wraparound: strip the 'id' field, use it as the week key
+    S.wa = Object.fromEntries(wa.map(w => {
+      const { id, ...rest } = w; return [id, rest];
+    }));
+    renderTodayNeeds();
+    renderTodayHw();
+    renderTodayFix();
+    renderTodayKd();
+    renderTodayBk();
+    renderAllHw();
+    renderAllFx();
+    renderAllKd();
+    renderBooks();
+    renderForms();
+    renderTodayForms();
+    renderWeek();
+    renderMonth();
+    renderWaToggles();
+  } catch(e) {
+    console.warn('loadAll error', e);
+  }
+}
+
+// ── TODAY: needs card ───────────────────────────────────────────────
+function renderTodayNeeds() {
+  const todStr = ds(new Date());
+  const dow    = new Date().getDay();   // 0=Sun…6=Sat
+  const isWknd = dow === 0 || dow === 6;
+  const isWed  = dow === 3;
+  const idx    = dow - 1;              // Mon=0…Fri=4
+
+  const wk   = weekKey(0);
+  const wrap = S.wa[wk] || {};
+  const morn = !isWknd && wrap.morning   && wrap.morning[idx];
+  const aftn = !isWknd && wrap.afternoon && wrap.afternoon[idx];
+
+  const fixToday = S.fx.filter(f => f.date === todStr);
+  const hwToday  = S.hw.filter(h => h.dueDate === todStr && !h.done);
+  const sport    = isWed || fixToday.length > 0;
+
+  const dayStatus = getDayStatus(todStr);
+  const isNoSchool = dayStatus.type !== 'school';
+
+  let html = '';
+
+  if (isNoSchool) {
+    const next = nextSchoolDay(todStr);
+    const daysBack = next ? Math.round((pd(next) - new Date().setHours(0,0,0,0) + 0) / 86400000) : null;
+    const dBack2 = next ? Math.round((pd(next) - tod()) / 86400000) : null;
+    const backStr = dBack2 === 1 ? 'Back tomorrow' : dBack2 ? `Back in ${dBack2} days — ${fmt(next,{weekday:'long',day:'numeric',month:'long'})}` : '';
+    html = `<div class="hol-banner">
+      <div class="hol-banner-icon">${dayStatus.icon || '🏡'}</div>
+      <div class="hol-banner-title">${dayStatus.label}</div>
+      <div class="hol-banner-sub">No school today</div>
+      ${backStr ? `<div class="hol-banner-back">${backStr}</div>` : ''}
+    </div>`;
+  } else {
+    // PE kit
+    html += `<div class="need-item">
+      <div class="need-icon ${sport ? 'ni-blue' : 'ni-grey'}">👟</div>
+      <div class="need-text">
+        <div class="need-label">PE / Games kit</div>
+        <div class="need-sub">${isWed ? 'Year 4 Sport — Wednesday' : fixToday.length ? 'Fixture today' : 'Not needed today'}</div>
+      </div>
+      <span class="badge ${sport ? 'b-yes' : 'b-no'}">${sport ? 'Needed' : 'Not today'}</span>
+    </div>`;
+
+    // Homework due
+    html += `<div class="need-item">
+      <div class="need-icon ${hwToday.length ? 'ni-red' : 'ni-grey'}">📚</div>
+      <div class="need-text">
+        <div class="need-label">Homework due</div>
+        <div class="need-sub">${hwToday.length ? hwToday.map(h=>h.subject).join(', ') : isWed ? 'No new homework set today (Wednesday catch-up day)' : 'Nothing due today'}</div>
+      </div>
+      ${hwToday.length ? `<span class="badge b-due">${hwToday.length} due</span>` : ''}
+    </div>`;
+
+    // Morning travel
+    html += `<div class="need-item">
+      <div class="need-icon ${morn ? 'ni-gold' : 'ni-blue'}">🚌</div>
+      <div class="need-text">
+        <div class="need-label">Morning travel</div>
+        <div class="need-sub">${morn ? 'Parent drop-off — morning wraparound from 8:00 am' : 'Bus from Bowdon pickup'}</div>
+      </div>
+      <span class="badge ${morn ? 'b-warn' : 'b-yes'}">${morn ? 'Wraparound' : 'Bus'}</span>
+    </div>`;
+
+    // Afternoon / getting home
+    html += `<div class="need-item">
+      <div class="need-icon ${aftn ? 'ni-green' : 'ni-blue'}">🚌</div>
+      <div class="need-text">
+        <div class="need-label">Getting home</div>
+        <div class="need-sub">${aftn ? 'Staying in wraparound — snack provided, homework first. Pick up by 6 pm' : 'Bus home — drop-off at Barry Rise'}</div>
+      </div>
+      <span class="badge ${aftn ? 'b-warn' : 'b-yes'}">${aftn ? 'Wraparound' : 'Bus'}</span>
+    </div>`;
+
+    // Any fixtures today
+    fixToday.forEach(f => {
+      html += `<div class="need-item">
+        <div class="need-icon ni-red">🏆</div>
+        <div class="need-text">
+          <div class="need-label">${f.sport} fixture</div>
+          <div class="need-sub">${[f.opponent, f.venue, f.time ? f.time + ' meet' : ''].filter(Boolean).join(' · ')}</div>
+          ${f.kit ? `<div class="need-sub">Kit: ${f.kit}</div>` : ''}
+        </div>
+      </div>`;
+    });
+  }
+
+  qs('todayNeeds').innerHTML = html;
+}
+
+// ── TODAY: homework card ────────────────────────────────────────────
+function renderTodayHw() {
+  const todStr = ds(new Date());
+  const items  = S.hw
+    .filter(h => !h.done && h.dueDate >= todStr)
+    .sort((a,b) => a.dueDate.localeCompare(b.dueDate))
+    .slice(0, 8);
+
+  if (!items.length) {
+    qs('todayHw').innerHTML = `<div class="empty"><div class="empty-icon">✅</div>All caught up — no outstanding homework!</div>`;
+    return;
+  }
+
+  qs('todayHw').innerHTML = items.map(hw => {
+    const d = diff(hw.dueDate);
+    let dc = '', dt = '';
+    if (d < 0)      { dc='due-today'; dt='Overdue!'; }
+    else if (d===0) { dc='due-today'; dt='Due today!'; }
+    else if (d===1) { dc='due-soon';  dt='Due tomorrow'; }
+    else            { dt=`Due ${fmt(hw.dueDate, {weekday:'short',day:'numeric',month:'short'})}`; }
+
+    return `<div class="hw-item">
+      <div class="hw-check" onclick="toggleHw('${hw.id}',${hw.done})"></div>
+      <div class="hw-info">
+        <div class="hw-subject">${hw.subject}</div>
+        <div class="hw-desc">${hw.description || ''}</div>
+        <div class="hw-meta ${dc}">${dt}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── TODAY: fixtures ─────────────────────────────────────────────────
+function renderTodayFix() {
+  if (!S.fx.length) { qs('fixCard').style.display = 'none'; return; }
+  qs('fixCard').style.display = '';
+  const top4 = S.fx.slice(0, 4);
+  qs('todayFix').innerHTML = top4.map(f => {
+    const d = pd(f.date);
+    const sc = `s-${f.sport.toLowerCase()}`;
+    return `<div class="fixture-row">
+      <div class="fix-date">
+        <div class="fix-day">${d.toLocaleDateString('en-GB',{weekday:'short'})}</div>
+        <div class="fix-num">${d.getDate()}</div>
+        <div class="fix-mon">${d.toLocaleDateString('en-GB',{month:'short'})}</div>
+      </div>
+      <div class="fix-info">
+        <div class="fix-title"><span class="sport-chip ${sc}">${f.sport}</span>${f.opponent||''}</div>
+        <div class="fix-meta">${[f.venue, f.time?f.time+' meet':'', f.returnTime?'back ~'+f.returnTime:''].filter(Boolean).join(' · ')}</div>
+        ${f.kit ? `<div class="fix-kit">Kit: ${f.kit}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── TODAY: key dates ────────────────────────────────────────────────
+function renderTodayKd() {
+  if (!S.kd.length) { qs('kdCard').style.display = 'none'; return; }
+  qs('kdCard').style.display = '';
+  qs('todayKd').innerHTML = S.kd.slice(0,5).map(k => {
+    const d = diff(k.date);
+    const when = d===0 ? 'Today!' : d===1 ? 'Tomorrow' : d>0 ? `In ${d} days · ${fmt(k.date,{day:'numeric',month:'short'})}` : fmt(k.date,{day:'numeric',month:'short'});
+    return `<div class="kd-row">
+      <div class="kd-dot"></div>
+      <div class="kd-info">
+        <div class="kd-title">${k.title}</div>
+        <div class="kd-when">${when}${k.notes?' · '+k.notes:''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── WEEK view ───────────────────────────────────────────────────────
+window.shiftWeek = dir => { S.wkOff += dir; renderWeek(); };
+
+function renderWeek() {
+  const days   = weekDates(S.wkOff);
+  const todStr = ds(new Date());
+  const wk     = weekKey(S.wkOff);
+  const wrap   = S.wa[wk] || {};
+
+  const s = days[0].toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const e = days[4].toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  qs('wkTitle').textContent = `${s} – ${e}`;
+
+  qs('weekGrid').innerHTML = days.map((d, i) => {
+    const dStr   = ds(d);
+    const isT    = dStr === todStr;
+    const isWed  = d.getDay() === 3;
+    const morn   = wrap.morning   && wrap.morning[i];
+    const aftn   = wrap.afternoon && wrap.afternoon[i];
+    const hwDue  = S.hw.filter(h => h.dueDate === dStr && !h.done);
+    const fixD   = S.fx.filter(f => f.date === dStr);
+    const kdD    = S.kd.filter(k => k.date === dStr);
+    const status = getDayStatus(dStr);
+    const isHol  = status.type !== 'school';
+
+    const chips = [];
+    if (isHol) {
+      // Subtle holiday/closed tag, but still show key dates/fixtures that fall on the day
+      chips.push(`<span class="chip ${status.type==='closed'?'ch-closed':'ch-hol'}">${status.icon||''} ${status.label}</span>`);
+      hwDue.forEach(h => chips.push(`<span class="chip ch-hw">${h.subject} due</span>`));
+      fixD.forEach(f  => chips.push(`<span class="chip ch-fix">${f.sport} fixture</span>`));
+      kdD.forEach(k   => chips.push(`<span class="chip ch-date">${k.title}</span>`));
+    } else {
+      if (isWed) { chips.push(`<span class="chip ch-sport">Year 4 Sport</span>`); chips.push(`<span class="chip ch-nohw">No new homework</span>`); }
+      if (morn)  chips.push(`<span class="chip ch-wrap">Morning care</span>`);
+      if (aftn)  chips.push(`<span class="chip ch-wrap">After-school care</span>`);
+      hwDue.forEach(h => chips.push(`<span class="chip ch-hw">${h.subject} due</span>`));
+      fixD.forEach(f  => chips.push(`<span class="chip ch-fix">${f.sport} fixture</span>`));
+      kdD.forEach(k   => chips.push(`<span class="chip ch-date">${k.title}</span>`));
+    }
+
+    return `<div class="day-card${isT?' is-today':''}${isHol?' is-holiday':''}">
+      <div class="day-hdr">
+        <span class="day-name">${d.toLocaleDateString('en-GB',{weekday:'long'})}</span>
+        <span class="day-ds">${d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>
+      </div>
+      ${chips.length ? `<div class="day-chips">${chips.join('')}</div>` : '<div class="day-empty">Nothing on</div>'}
+    </div>`;
+  }).join('');
+}
+
+// ── MONTH view ──────────────────────────────────────────────────────
+window.shiftMonth = dir => { S.monOff += dir; renderMonth(); };
+
+// Get the Monday-week-key for any Date (used to look up wraparound)
+function weekKeyForDate(d) {
+  const dow = d.getDay();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+  mon.setHours(0,0,0,0);
+  return ds(mon);
+}
+
+function renderMonth() {
+  const today = new Date();
+  const base  = new Date(today.getFullYear(), today.getMonth() + S.monOff, 1);
+  const year  = base.getFullYear();
+  const month = base.getMonth();
+  const todStr = ds(today);
+
+  qs('moTitle').textContent = base.toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+
+  // Calculate the Monday on/before the 1st of this month
+  const firstDow = base.getDay() === 0 ? 6 : base.getDay() - 1; // Mon=0..Sun=6
+  const gridStart = new Date(year, month, 1 - firstDow);
+
+  // Determine grid length: 5 or 6 rows depending on month
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const totalCells  = (firstDow + daysInMonth) > 35 ? 42 : 35;
+
+  // Pre-compute events by date string
+  const evByDate = {};
+  const push = (dateStr, type, label) => {
+    if (!dateStr) return;
+    if (!evByDate[dateStr]) evByDate[dateStr] = [];
+    evByDate[dateStr].push({type, label});
+  };
+  S.hw.forEach(h => { if (!h.done) push(h.dueDate, 'hw', h.subject); });
+  S.fx.forEach(f => push(f.date, 'fix', f.sport));
+  S.kd.forEach(k => push(k.date, 'kd',  k.title));
+
+  // Header row
+  const dayLbls = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html = dayLbls.map(d => `<div class="mo-hdr-cell">${d}</div>`).join('');
+
+  for (let i = 0; i < totalCells; i++) {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    const dStr = ds(d);
+    const dNum = d.getDate();
+    const dow  = d.getDay();
+    const isWknd  = dow === 0 || dow === 6;
+    const isOther = d.getMonth() !== month;
+    const isToday = dStr === todStr;
+    const status  = getDayStatus(dStr);
+
+    let cls = 'mo-day-cell';
+    if (isToday)                       cls += ' is-today';
+    else if (isOther)                  cls += ' is-other';
+    else if (status.type === 'closed') cls += ' is-closed';
+    else if (status.type === 'holiday')cls += ' is-holiday';
+    else if (isWknd)                   cls += ' is-weekend';
+
+    // Build events list for this day
+    let events = (evByDate[dStr] || []).slice();
+
+    if (!isOther && status.type === 'school') {
+      // Wednesday Year 4 Sport
+      if (dow === 3) events.unshift({type:'sport', label:'Sport'});
+      // Wraparound (only Mon-Fri)
+      const wk = weekKeyForDate(d);
+      const wrap = S.wa[wk];
+      const idx  = dow === 0 ? 6 : dow - 1;
+      if (wrap && idx < 5) {
+        const m = wrap.morning   && wrap.morning[idx];
+        const a = wrap.afternoon && wrap.afternoon[idx];
+        if (m || a) events.push({type:'wrap', label:'Wraparound'});
+      }
+    }
+
+    let evtHtml = '';
+    const isHolOrClosed = !isOther && (status.type === 'holiday' || status.type === 'closed');
+
+    if (isHolOrClosed && events.length === 0) {
+      // Pure holiday day, no events: just the holiday label
+      evtHtml = `<div class="mo-evt e-hol">${status.icon || ''} ${status.label}</div>`;
+    } else {
+      // Show events even if the day is a holiday — parent dates etc. happen out of term
+      const maxVis = isHolOrClosed ? 1 : 2;
+      const visible = events.slice(0, maxVis);
+      visible.forEach(e => {
+        evtHtml += `<div class="mo-evt e-${e.type}">${e.label}</div>`;
+      });
+      const more = events.length - visible.length;
+      if (more > 0) evtHtml += `<div class="mo-more">+${more} more</div>`;
+      // If holiday day WITH events, show a small holiday tag below
+      if (isHolOrClosed) {
+        evtHtml += `<div class="mo-evt e-hol" style="font-size:0.56rem">${status.icon || ''}</div>`;
+      }
+    }
+
+    html += `<div class="${cls}"><div class="mo-day-num">${dNum}</div>${evtHtml}</div>`;
+  }
+
+  qs('monthGrid').innerHTML = html;
+}
+
+// ── Wraparound toggles ──────────────────────────────────────────────
+window.shiftWaWeek = dir => { S.waOff += dir; renderWaToggles(); };
+
+function renderWaToggles() {
+  const days = weekDates(S.waOff);
+  const wk   = weekKey(S.waOff);
+  const wrap = S.wa[wk] || {};
+
+  const s = days[0].toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  const e = days[4].toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  qs('waWkTitle').textContent = `${s} – ${e}`;
+
+  const lbl = ['Mon','Tue','Wed','Thu','Fri'];
+  ['morning','afternoon'].forEach(p => {
+    const el = qs(p==='morning' ? 'waMorn' : 'waAftn');
+    el.innerHTML = lbl.map((l,i) => {
+      const on = wrap[p] && wrap[p][i];
+      return `<div class="wrap-col">
+        <span class="wrap-lbl">${l}</span>
+        <button class="wrap-tog${on?' on':''}" onclick="togWa('${p}',${i},'${wk}')">${on?'✓':l[0]}</button>
+      </div>`;
+    }).join('');
+  });
+}
+
+window.togWa = (period, idx, wk) => {
+  if (!S.wa[wk]) S.wa[wk] = {};
+  if (!S.wa[wk][period]) S.wa[wk][period] = [false,false,false,false,false];
+  S.wa[wk][period][idx] = !S.wa[wk][period][idx];
+  renderWaToggles();
+};
+
+window.saveWa = async () => {
+  const wk   = weekKey(S.waOff);
+  const data = S.wa[wk] || {
+    morning:   [false,false,false,false,false],
+    afternoon: [false,false,false,false,false]
+  };
+  try {
+    await apiPut('wraparound', wk, data);
+    toast('Wraparound saved ✓');
+    renderTodayNeeds();
+    renderWeek();
+  } catch { toast('Save failed — check connection'); }
+};
+
+// ── Homework CRUD ───────────────────────────────────────────────────
+window.addHw = async () => {
+  const sub  = qs('hSub').value;
+  const desc = qs('hDesc').value.trim();
+  const set  = qs('hSet').value;
+  const due  = qs('hDue').value;
+  if (!sub || !due) { toast('Please choose a subject and due date'); return; }
+  try {
+    await apiPost('homework', { subject:sub, description:desc, setDate:set, dueDate:due, done:false, createdAt:new Date().toISOString() });
+    qs('hSub').value=''; qs('hDesc').value='';
+    toast('Homework added ✓');
+    await loadAll();
+  } catch { toast('Error — check connection'); }
+};
+
+window.toggleHw = async (id, cur) => {
+  try {
+    const update = { done: !cur };
+    if (!cur) update.doneAt = new Date().toISOString();
+    else      update.doneAt = '';   // clear timestamp when unmarking
+    await apiPatch('homework', id, update);
+    toast(!cur ? '✓ Done!' : 'Marked incomplete');
+    await loadAll();
+  } catch { toast('Error updating'); }
+};
+
+window.delHw = async id => {
+  try { await apiDel('homework', id); toast('Deleted'); await loadAll(); }
+  catch { toast('Error'); }
+};
+
+function renderAllHw() {
+  const sorted = [...S.hw].sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return a.dueDate.localeCompare(b.dueDate);
+  });
+  if (!sorted.length) { qs('allHw').innerHTML = '<div class="empty">No homework yet</div>'; return; }
+  qs('allHw').innerHTML = sorted.map(h => `
+    <div class="mgr-row ${h.done?'done-item':''}">
+      <div class="hw-info">
+        <div class="hw-subject">${h.subject}</div>
+        <div class="hw-desc">${h.description||'No description'}</div>
+        <div class="hw-meta">Due: ${fmt(h.dueDate,{weekday:'short',day:'numeric',month:'short'})}${h.done?(h.doneAt?` · ✓ Done ${fmtDoneAt(h.doneAt)}`:' · ✓ Done'):''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="hw-check ${h.done?'done':''}" style="flex-shrink:0" onclick="toggleHw('${h.id}',${h.done})"></button>
+        <button class="delete-btn" onclick="delHw('${h.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Fixtures CRUD ───────────────────────────────────────────────────
+window.addFx = async () => {
+  const date = qs('fxDate').value;
+  const sport= qs('fxSport').value;
+  if (!date||!sport) { toast('Date and sport required'); return; }
+  try {
+    await apiPost('fixtures', {
+      date, sport,
+      opponent: qs('fxOpp').value.trim(),
+      venue:    qs('fxVenue').value.trim(),
+      time:     qs('fxTime').value,
+      returnTime: qs('fxRet').value,
+      kit:      qs('fxKit').value.trim(),
+      createdAt: new Date().toISOString()
+    });
+    ['fxOpp','fxVenue','fxKit'].forEach(id => qs(id).value='');
+    toast('Fixture added ✓');
+    await loadAll();
+  } catch { toast('Error'); }
+};
+
+window.delFx = async id => {
+  try { await apiDel('fixtures', id); toast('Deleted'); await loadAll(); }
+  catch { toast('Error'); }
+};
+
+function renderAllFx() {
+  if (!S.fx.length) { qs('allFx').innerHTML='<div class="empty">No upcoming fixtures</div>'; return; }
+  qs('allFx').innerHTML = S.fx.map(f => `
+    <div class="mgr-row">
+      <div class="hw-info">
+        <div class="hw-subject">${f.sport}</div>
+        <div class="hw-desc">${f.opponent||'TBC'}</div>
+        <div class="hw-meta">${fmt(f.date,{weekday:'short',day:'numeric',month:'short'})}${f.time?' · '+f.time+' meet':''}</div>
+      </div>
+      <button class="delete-btn" onclick="delFx('${f.id}')">✕</button>
+    </div>`).join('');
+}
+
+// ── Key dates CRUD ──────────────────────────────────────────────────
+window.addKd = async () => {
+  const title = qs('kdTitle').value.trim();
+  const date  = qs('kdDate').value;
+  if (!title||!date) { toast('Title and date required'); return; }
+  try {
+    await apiPost('keyDates', {
+      title, date,
+      category: qs('kdCat').value,
+      notes:    qs('kdNotes').value.trim(),
+      createdAt: new Date().toISOString()
+    });
+    qs('kdTitle').value=''; qs('kdNotes').value='';
+    toast('Date added ✓');
+    await loadAll();
+  } catch { toast('Error'); }
+};
+
+window.delKd = async id => {
+  try { await apiDel('keyDates', id); toast('Deleted'); await loadAll(); }
+  catch { toast('Error'); }
+};
+
+function renderAllKd() {
+  if (!S.kd.length) { qs('allKd').innerHTML='<div class="empty">No key dates yet</div>'; return; }
+  qs('allKd').innerHTML = S.kd.map(k => `
+    <div class="mgr-row">
+      <div class="hw-info">
+        <div class="hw-subject">${k.title}</div>
+        ${k.notes?`<div class="hw-desc">${k.notes}</div>`:''}
+        <div class="hw-meta">${fmt(k.date,{weekday:'short',day:'numeric',month:'short',year:'numeric'})}</div>
+      </div>
+      <button class="delete-btn" onclick="delKd('${k.id}')">✕</button>
+    </div>`).join('');
+}
+
+// ── Books / Reading ─────────────────────────────────────────────────
+// MGS Junior School Year 4 Recommended Reading List 2026
+// Source: JS Welcome Pack 2026, p.19. * = will be read in class.
+const Y4_BOOKS = [
+  { title:"The Wolves of Willoughby Chase",                 author:"Joan Aiken" },
+  { title:"The Savage",                                     author:"David Almond" },
+  { title:"Brand New Boy",                                  author:"David Almond" },
+  { title:"Knitbone Pepper: Ghost Dog (series)",            author:"Claire Barker" },
+  { title:"The Shark Caller",                               author:"Zillah Bethell" },
+  { title:"The Terrible Thing that Happened to Barnaby Brocket", author:"John Boyne" },
+  { title:"The Last Kids on Earth (series)",                author:"Max Brallier" },
+  { title:"Another Twist in the Tale",                      author:"Catherine Bruton" },
+  { title:"Alice's Adventures in Wonderland",               author:"Lewis Carroll" },
+  { title:"The Legend of the Worst Boy in the World",       author:"Eoin Colfer" },
+  { title:"Cosmic",                                         author:"Frank Cottrell-Boyce" },
+  { title:"The Wizards of Once (series)",                   author:"Cressida Cowell" },
+  { title:"Just William",                                   author:"Richmal Crompton" },
+  { title:"Arthur: The Seeing Stone",                       author:"Kevin Crossley-Holland" },
+  { title:"Beowulf",                                        author:"Kevin Crossley-Holland" },
+  { title:"James and the Giant Peach",                      author:"Roald Dahl" },
+  { title:"The Boy Who Cried Horse",                        author:"Terry Deary" },
+  { title:"The Miraculous Journey of Edward Tulane",        author:"Kate DiCamillo" },
+  { title:"Rumblestar (The Unmapped Chronicles series)",    author:"Abi Elphinstone" },
+  { title:"Who Let the Gods Out",                           author:"Maz Evans" },
+  { title:"The Boy Who Met A Whale",                        author:"Nizrana Farook" },
+  { title:"The Book of Stolen Dreams",                      author:"David Farr" },
+  { title:"Ivan the Terrible",                              author:"Anne Fine" },
+  { title:"The Thief Lord",                                 author:"Cornelia Funke" },
+  { title:"Fortunately, the Milk",                          author:"Neil Gaiman" },
+  { title:"Darwin's Dragons",                               author:"Lindsay Galvin" },
+  { title:"Wildspark",                                      author:"Vashti Hardy" },
+  { title:"George's Secret Key to the Universe",            author:"Lucy & Stephen Hawking" },
+  { title:"Indiana Bones",                                  author:"Harry Heape" },
+  { title:"Groosham Grange",                                author:"Anthony Horowitz" },
+  { title:"One Dog and his Boy",                            author:"Eva Ibbotson" },
+  { title:"The Great Ghost Rescue",                         author:"Eva Ibbotson" },
+  { title:"Tilly and the Book Wanderers (series)",          author:"Anna James" },
+  { title:"Emil and the Detectives",                        author:"Erich Kastner" },
+  { title:"Crusade",                                        author:"Elizabeth Laird" },
+  { title:"The Roman Mysteries",                            author:"Caroline Lawrence" },
+  { title:"The Thieves of Ostia (Roman Mysteries series)",  author:"Caroline Lawrence" },
+  { title:"The Lion, The Witch and The Wardrobe",           author:"C.S. Lewis" },
+  { title:"Sky Dancer",                                     author:"Gill Lewis" },
+  { title:"The Spybrarian",                                 author:"Jon Mayhew" },
+  { title:"Accidental Trouble Magnet (Planet Omar series)", author:"Zanib Mian" },
+  { title:"Kensuke's Kingdom",                              author:"Michael Morpurgo",  notes:"⭐ Read in class" },
+  { title:"The Wreck of the Zanzibar",                      author:"Michael Morpurgo" },
+  { title:"Snow Spider",                                    author:"Jenny Nimmo" },
+  { title:"Foul Play (series)",                             author:"Tom Palmer" },
+  { title:"Wolf Brother",                                   author:"Michelle Paver" },
+  { title:"A Dog So Small",                                 author:"Philippa Pearce" },
+  { title:"Amazon Adventure (series)",                      author:"Willard Price" },
+  { title:"I Was a Rat",                                    author:"Philip Pullman" },
+  { title:"Now or Never: A Dunkirk Story",                  author:"Bali Rai" },
+  { title:"The Indian in the Cupboard",                     author:"Lynne Reid Banks" },
+  { title:"Mighty Fizz Chilla",                             author:"Philip Ridley" },
+  { title:"Percy Jackson and the Lightning Thief",          author:"Rick Riordan" },
+  { title:"Haroun and the Sea of Stories",                  author:"Salman Rushdie" },
+  { title:"The Boy Whose Wishes Came True",                 author:"Helen Rutter" },
+  { title:"Varjak Paw",                                     author:"SF Said" },
+  { title:"The Silver Sword",                               author:"Ian Serraillier" },
+  { title:"A Boy and a Bear in a Boat",                     author:"Dave Shelton" },
+  { title:"A Series of Unfortunate Events (series)",        author:"Lemony Snicket" },
+  { title:"Attack of the Bandit Cats",                      author:"Geronimo Stilton" },
+  { title:"The White Giraffe",                              author:"Lauren St John" },
+  { title:"The Hundred Mile An Hour Dog",                   author:"Jeremy Strong" },
+  { title:"Vlad, The World's Worst Vampire",                author:"Anna Wilson" },
+  { title:"The Chronicles of Chrestomanci (series)",        author:"Diana Wynne Jones" },
+];
+
+window.addBook = async () => {
+  const title  = qs('bkTitle').value.trim();
+  const author = qs('bkAuthor').value.trim();
+  const notes  = qs('bkNotes').value.trim();
+  if (!title) { toast('Title required'); return; }
+  try {
+    await apiPost('books', {
+      title, author, notes, status:'todo',
+      createdAt: new Date().toISOString()
+    });
+    qs('bkTitle').value=''; qs('bkAuthor').value=''; qs('bkNotes').value='';
+    toast('Book added ✓');
+    await loadAll();
+  } catch { toast('Error'); }
+};
+
+window.cycleBookStatus = async (id, cur) => {
+  // todo → reading → read → todo
+  const next = cur === 'todo' ? 'reading' : cur === 'reading' ? 'read' : 'todo';
+  const update = { status: next };
+  if (next === 'read') update.dateRead = ds(new Date());
+  if (next === 'todo') update.dateRead = '';
+  try {
+    await apiPatch('books', id, update);
+    await loadAll();
+    // Auto-prompt for review when transitioning to "read"
+    if (next === 'read') openReview(id);
+  } catch { toast('Error'); }
+};
+
+// ── Find book modal ─────────────────────────────────────────────────
+window.openFind = id => {
+  const b = S.bk.find(x => x.id === id);
+  if (!b) return;
+  qs('fnTitle').textContent  = b.title;
+  qs('fnAuthor').textContent = b.author || '';
+  const q = encodeURIComponent(`${b.title} ${b.author || ''}`.trim());
+  qs('fnLibrary').href = `https://www.google.com/search?q=${q}+libby+OR+borrowbox+OR+%22manchester+libraries%22`;
+  qs('fnKindle').href  = `https://www.amazon.co.uk/s?k=${q}&i=digital-text`;
+  qs('fnApple').href   = `https://books.apple.com/gb/search?term=${q}`;
+  qs('fnGoogle').href  = `https://www.google.com/search?q=${q}+ebook+OR+paperback`;
+  qs('findOverlay').classList.add('open');
+};
+window.closeFind = () => qs('findOverlay').classList.remove('open');
+
+// ── Book review modal ──────────────────────────────────────────────
+let _rvBookId = null;
+let _rvStars  = 0;
+
+window.setRvStars = n => {
+  _rvStars = n === _rvStars ? 0 : n; // tap same star again to clear
+  const btns = qs('rvStars').querySelectorAll('.star-btn');
+  btns.forEach((b, i) => b.classList.toggle('lit', i < _rvStars));
+};
+
+window.openReview = id => {
+  const b = S.bk.find(x => x.id === id);
+  if (!b) return;
+  _rvBookId = id;
+  _rvStars  = b.rating || 0;
+  qs('rvTitle').textContent  = b.title;
+  qs('rvAuthor').textContent = b.author || '';
+  qs('rvLiked').value    = b.liked    || '';
+  qs('rvDisliked').value = b.disliked || '';
+  setRvStars(_rvStars);
+  qs('reviewOverlay').classList.add('open');
+};
+
+window.closeReview = () => {
+  qs('reviewOverlay').classList.remove('open');
+  _rvBookId = null;
+  _rvStars  = 0;
+};
+
+window.saveReview = async () => {
+  if (!_rvBookId) { closeReview(); return; }
+  const update = {
+    liked:    qs('rvLiked').value.trim(),
+    disliked: qs('rvDisliked').value.trim(),
+    rating:   _rvStars,
+  };
+  try {
+    await apiPatch('books', _rvBookId, update);
+    closeReview();
+    toast('Review saved ✓');
+    await loadAll();
+  } catch { toast('Error saving review'); }
+};
+
+window.delBook = async id => {
+  if (!confirm('Remove this book from the list?')) return;
+  try { await apiDel('books', id); toast('Removed'); await loadAll(); }
+  catch { toast('Error'); }
+};
+
+window.seedBookList = async () => {
+  if (S.bk.length) {
+    if (!confirm('You already have books in the list. Add the Year 4 starter list anyway?')) return;
+  }
+  try {
+    await Promise.all(Y4_BOOKS.map(b => apiPost('books', {
+      title:b.title, author:b.author, notes:b.notes || '', status:'todo',
+      createdAt: new Date().toISOString()
+    })));
+    toast(`${Y4_BOOKS.length} books added ✓`);
+    await loadAll();
+  } catch { toast('Error seeding list'); }
+};
+
+function escAttr(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function bookRow(b) {
+  const lbl = b.status === 'reading' ? 'Reading' : b.status === 'read' ? 'Read' : 'Not started';
+  const cls = b.status === 'reading' ? 'bs-reading' : b.status === 'read' ? 'bs-read' : 'bs-todo';
+  const hasReview = !!(b.liked || b.disliked || b.rating);
+  const showReviewBtn = b.status === 'read' || b.status === 'reading' || hasReview;
+
+  const stars = b.rating ? `<div class="star-display" style="margin-top:2px">${'★'.repeat(b.rating)}${'☆'.repeat(5-b.rating)}</div>` : '';
+  const liked    = b.liked    ? `<div class="review-snippet liked"><strong>👍</strong> ${escAttr(b.liked)}</div>`       : '';
+  const disliked = b.disliked ? `<div class="review-snippet disliked"><strong>👎</strong> ${escAttr(b.disliked)}</div>` : '';
+
+  const readDate = (b.status === 'read' && b.dateRead)
+    ? `<div class="book-notes" style="color:var(--green);font-weight:700">✓ Finished ${fmt(b.dateRead, {weekday:'short',day:'numeric',month:'short',year:'numeric'})}</div>`
+    : '';
+
+  return `<div class="book-row${b.status==='read'?' is-read':''}" style="flex-wrap:wrap;align-items:flex-start">
+    <div class="book-info">
+      <div class="book-title">${b.title}</div>
+      ${b.author ? `<div class="book-author">${b.author}</div>` : ''}
+      ${b.notes ? `<div class="book-notes">${b.notes}</div>` : ''}
+      ${readDate}
+      ${stars}${liked}${disliked}
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+      <button class="review-btn" onclick="openFind('${b.id}')" title="Find this book">🔍</button>
+      ${showReviewBtn ? `<button class="review-btn${hasReview?' has-review':''}" onclick="openReview('${b.id}')">${hasReview?'📝 Edit':'📝 Review'}</button>` : ''}
+      <button class="book-status ${cls}" onclick="cycleBookStatus('${b.id}','${b.status||'todo'}')">${lbl}</button>
+      <button class="delete-btn" onclick="delBook('${b.id}')">✕</button>
+    </div>
+  </div>`;
+}
+
+function renderBooks() {
+  // Show seed card only if list is empty
+  qs('bkSeedCard').style.display = S.bk.length === 0 ? 'block' : 'none';
+
+  const reading = S.bk.filter(b => b.status === 'reading');
+  const todo    = S.bk.filter(b => !b.status || b.status === 'todo');
+  const read    = S.bk.filter(b => b.status === 'read');
+
+  qs('bkReading').innerHTML = reading.length
+    ? reading.map(bookRow).join('')
+    : '<div class="empty">Nothing in progress</div>';
+
+  qs('bkTodo').innerHTML = todo.length
+    ? todo.sort((a,b) => a.title.localeCompare(b.title)).map(bookRow).join('')
+    : '<div class="empty">All caught up — add a new book or pick one from "Finished"!</div>';
+
+  qs('bkRead').innerHTML = read.length
+    ? read.sort((a,b) => (b.dateRead||'').localeCompare(a.dateRead||'')).map(bookRow).join('')
+    : '<div class="empty">No books finished yet</div>';
+
+  qs('bkReadCount').textContent = read.length ? `(${read.length})` : '';
+}
+
+function renderTodayBk() {
+  const reading = S.bk.filter(b => b.status === 'reading');
+  if (!reading.length) { qs('bkCard').style.display = 'none'; return; }
+  qs('bkCard').style.display = '';
+  qs('todayBk').innerHTML = reading.map(b => `
+    <div class="book-row" style="border-bottom:none;padding:4px 0">
+      <div class="book-info">
+        <div class="book-title">${b.title}</div>
+        ${b.author ? `<div class="book-author">${b.author}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ── Welcome Pack key dates seed ─────────────────────────────────────
+const MGS_DATES = [
+  { date:'2026-05-18', title:"Welcome Pack forms — deadline",        category:'school',  notes:"Deadline for completion and return of all Welcome Pack forms" },
+  { date:'2026-06-18', title:"New Starter Afternoon",                 category:'school',  notes:"2:10pm – 3:15pm. Meet new form teacher and classmates. Site parking from 2:00pm only" },
+  { date:'2026-06-19', title:"Parents' Society Afternoon Tea Social", category:'event',   notes:"Includes pre-loved uniform sale" },
+  { date:'2026-06-30', title:"Early fee payment discount deadline",   category:'school',  notes:"See Welcome Pack p.23 for details" },
+  { date:'2026-09-03', title:"Term begins — all boys",                category:'school',  notes:"Michaelmas Term 2026 starts" },
+  { date:'2026-09-03', title:"OPRO Mouthguard Fitting #1",            category:'medical', notes:"11:00 – 14:00 — order ahead at oproschools.com" },
+  { date:'2026-09-07', title:"OPRO Mouthguard Fitting #2",            category:'medical', notes:"10:00 – 14:30 — order ahead at oproschools.com" },
+  { date:'2026-09-10', title:"Parent Information Evening",            category:'event',   notes:"" },
+  { date:'2026-09-18', title:"First Parents' Society Breakfast Social", category:'event', notes:"" },
+];
+
+window.seedMgsDates = async () => {
+  const existing = new Set(S.kd.map(k => k.title + '|' + k.date));
+  const toAdd = MGS_DATES.filter(d => !existing.has(d.title + '|' + d.date));
+  if (!toAdd.length) { toast('All Welcome Pack dates already added ✓'); return; }
+  try {
+    await Promise.all(toAdd.map(d => apiPost('keyDates', {
+      title: d.title, date: d.date, category: d.category, notes: d.notes,
+      createdAt: new Date().toISOString()
+    })));
+    toast(`${toAdd.length} date${toAdd.length===1?'':'s'} added ✓`);
+    await loadAll();
+  } catch { toast('Error seeding dates'); }
+};
+
+// ── Forms checklist ─────────────────────────────────────────────────
+const MGS_FORMS = [
+  { name:"OPRO Mouthguards",            url:"https://www.oproschools.com",  notes:"Optional — order ahead of 3 / 7 Sept fitting" },
+  { name:"Instrumental & Vocal Lessons", url:"",                            notes:"Optional — see Welcome Pack p.16" },
+  { name:"LAMDA tuition",                url:"",                            notes:"Optional — email application" },
+  { name:"Parents' Society 500 Club",    url:"",                            notes:"Optional — fundraising raffle" },
+  { name:"Direct Debit Mandate",         url:"",                            notes:"Paper form — return to Admissions Office in pre-paid envelope" },
+];
+
+window.seedForms = async () => {
+  if (S.fm.length) {
+    if (!confirm('Forms list already populated — add starter set again?')) return;
+  }
+  try {
+    await Promise.all(MGS_FORMS.map(f => apiPost('forms', {
+      name: f.name, url: f.url, notes: f.notes,
+      deadline: '2026-05-18', done: false,
+      createdAt: new Date().toISOString()
+    })));
+    toast(`${MGS_FORMS.length} forms added ✓`);
+    await loadAll();
+  } catch { toast('Error seeding forms'); }
+};
+
+window.toggleForm = async (id, cur) => {
+  try {
+    const update = { done: !cur };
+    if (!cur) update.doneAt = new Date().toISOString();
+    await apiPatch('forms', id, update);
+    await loadAll();
+  } catch { toast('Error'); }
+};
+
+window.delForm = async id => {
+  if (!confirm('Remove this form from the list?')) return;
+  try { await apiDel('forms', id); toast('Removed'); await loadAll(); }
+  catch { toast('Error'); }
+};
+
+function renderTodayForms() {
+  const card = qs('todayFormsCard');
+  if (!card) return;
+  const undone = S.fm.filter(f => !f.done);
+
+  if (!undone.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  // Earliest upcoming deadline
+  const dls = undone.map(f => f.deadline).filter(Boolean).sort();
+  const dl  = dls[0] || '2026-05-18';
+  const daysLeft = Math.round((pd(dl) - tod()) / 86400000);
+
+  let banner = '';
+  if (daysLeft < 0) {
+    banner = `<div class="deadline-banner">⚠ Deadline passed · ${undone.length} outstanding</div>`;
+  } else if (daysLeft === 0) {
+    banner = `<div class="deadline-banner">⚠ DEADLINE TODAY · ${undone.length} to do</div>`;
+  } else if (daysLeft <= 7) {
+    banner = `<div class="deadline-banner is-soon">⏰ ${daysLeft} day${daysLeft===1?'':'s'} left · ${undone.length} to do · ${fmt(dl,{day:'numeric',month:'short'})}</div>`;
+  } else if (daysLeft <= 21) {
+    banner = `<div class="deadline-banner is-ok">📅 ${daysLeft} days left · ${undone.length} to do · ${fmt(dl,{day:'numeric',month:'short'})}</div>`;
+  }
+  qs('todayFormsBanner').innerHTML = banner;
+
+  // Sort by deadline ascending (most urgent first)
+  const sorted = [...undone].sort((a,b) => (a.deadline||'').localeCompare(b.deadline||''));
+
+  qs('todayForms').innerHTML = sorted.map(f => `
+    <div class="form-row">
+      <div class="hw-check" onclick="toggleForm('${f.id}', false)"></div>
+      <div class="form-info">
+        <div class="form-name">${f.name}</div>
+        ${f.notes ? `<div class="form-meta">${f.notes}</div>` : ''}
+        ${f.url   ? `<div class="form-meta"><a class="info-link" href="${f.url}" target="_blank" onclick="event.stopPropagation()">${f.url}</a></div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderForms() {
+  if (!qs('formsList')) return;
+
+  // Show seed button only if empty
+  qs('formsSeed').style.display = S.fm.length === 0 ? 'block' : 'none';
+
+  // Deadline banner
+  const dl = S.fm.length ? (S.fm[0].deadline || '2026-05-18') : '2026-05-18';
+  const today = ds(new Date());
+  const daysLeft = Math.round((pd(dl) - tod()) / 86400000);
+  const undone = S.fm.filter(f => !f.done).length;
+  let banner = '';
+  if (S.fm.length) {
+    if (undone === 0) {
+      banner = `<div class="deadline-banner is-ok">✓ All forms complete!</div>`;
+    } else if (daysLeft < 0) {
+      banner = `<div class="deadline-banner">⚠ Deadline passed · ${undone} form${undone===1?'':'s'} outstanding</div>`;
+    } else if (daysLeft <= 7) {
+      banner = `<div class="deadline-banner is-soon">⏰ ${daysLeft} day${daysLeft===1?'':'s'} left · ${undone} to do</div>`;
+    } else {
+      banner = `<div class="deadline-banner is-ok">📅 ${daysLeft} days until deadline (${fmt(dl,{day:'numeric',month:'short'})}) · ${undone} to do</div>`;
+    }
+  }
+  qs('formsDeadline').innerHTML = banner;
+
+  if (!S.fm.length) {
+    qs('formsList').innerHTML = '<div class="empty">No forms tracked yet — load the Welcome Pack list below.</div>';
+    return;
+  }
+
+  // Sort: incomplete first
+  const sorted = [...S.fm].sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  qs('formsList').innerHTML = sorted.map(f => `
+    <div class="form-row${f.done?' done-item':''}">
+      <div class="hw-check${f.done?' done':''}" onclick="toggleForm('${f.id}',${!!f.done})"></div>
+      <div class="form-info">
+        <div class="form-name">${f.name}</div>
+        ${f.notes ? `<div class="form-meta">${f.notes}</div>` : ''}
+        ${f.url   ? `<div class="form-meta"><a class="info-link" href="${f.url}" target="_blank">${f.url}</a></div>` : ''}
+        ${f.done && f.doneAt ? `<div class="form-meta" style="color:var(--green);font-weight:700">✓ Completed ${fmtDoneAt(f.doneAt)}</div>` : ''}
+      </div>
+      <button class="delete-btn" onclick="delForm('${f.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+// ── Import / AI parsing ─────────────────────────────────────────────
+let pendingImport = null;
+
+function initImport() {
+  const key = localStorage.getItem('mgs_claude_key');
+  if (key) {
+    // Show key status with masked preview
+    const preview = key.length > 12
+      ? key.slice(0, 10) + '…' + key.slice(-4)
+      : key.slice(0, 4) + '…';
+    qs('imKeyPreview').textContent = preview;
+    qs('imKeyStatus').style.display = 'block';
+    qs('imKeyCard').style.display   = 'none';
+  } else {
+    qs('imKeyStatus').style.display = 'none';
+    qs('imKeyCard').style.display   = 'block';
+  }
+}
+
+window.changeImApiKey = () => {
+  qs('imApiKeyInput').value = '';
+  qs('imKeyStatus').style.display = 'none';
+  qs('imKeyCard').style.display   = 'block';
+  qs('imApiKeyInput').focus();
+};
+
+window.saveImApiKey = () => {
+  const key = qs('imApiKeyInput').value.trim();
+  if (!key.startsWith('sk-ant-')) { toast('Check the key — it should start with sk-ant-'); return; }
+  localStorage.setItem('mgs_claude_key', key);
+  qs('imApiKeyInput').value = '';
+  toast('API key saved ✓');
+  initImport();
+};
+
+window.parseEmail = async () => {
+  const apiKey = localStorage.getItem('mgs_claude_key');
+  if (!apiKey) { qs('imKeyCard').style.display = 'block'; toast('Please save your API key first'); return; }
+
+  const text = qs('imText').value.trim();
+  const file  = qs('imFile').files[0];
+  if (!text && !file) { toast('Paste an email or upload a file first'); return; }
+
+  const btn = qs('imParseBtn');
+  btn.textContent = 'Analysing…';
+  btn.disabled = true;
+
+  try {
+    const todayStr = ds(new Date());
+    const todayFmt = new Date().toLocaleDateString('en-GB', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+    const userContent = [];
+
+    userContent.push({
+      type: 'text',
+      text: `You are a school planner assistant for Henry, who is in Year 4 at Manchester Grammar School (MGS) Junior School in Manchester, starting September 2026.
+
+Today is ${todayFmt} (${todayStr}).
+
+Parse the school communication below and extract any relevant planning information. Return ONLY a valid JSON object — no explanation, no markdown fences — in exactly this structure:
+
+{
+  "summary": "One sentence describing what this email is about",
+  "homework": [
+    { "subject": "Maths", "description": "Complete worksheet p.14-15", "setDate": "YYYY-MM-DD", "dueDate": "YYYY-MM-DD" }
+  ],
+  "fixtures": [
+    { "date": "YYYY-MM-DD", "sport": "Rugby", "opponent": "Away vs Bolton School", "venue": "Away", "time": "15:30", "returnTime": "17:30", "kit": "Full games kit + studded boots" }
+  ],
+  "keyDates": [
+    { "title": "Parents' Evening", "date": "YYYY-MM-DD", "category": "school", "notes": "" }
+  ]
+}
+
+Rules:
+- Use [] for any category where nothing was found
+- All dates must be YYYY-MM-DD format
+- For sport use one of: Rugby, Football, Hockey, Cricket, Swimming, Other
+- For keyDates category use one of: school, trip, medical, event, other
+- Infer due dates from phrases like "for tomorrow", "by Friday", "next week"
+- If a date cannot be determined, omit that item entirely
+- setDate for homework defaults to today (${todayStr}) if not stated
+
+Communication to parse:`
+    });
+
+    if (file) {
+      const b64 = await readFileAsBase64(file);
+      if (file.type === 'application/pdf') {
+        userContent.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } });
+      } else {
+        userContent.push({ type: 'image', source: { type: 'base64', media_type: file.type, data: b64 } });
+      }
+    } else {
+      userContent.push({ type: 'text', text: text });
+    }
+
+    // Route through api.php so the browser never makes a cross-origin request
+    const resp = await fetch('api.php?action=import', {
+      method: 'POST',
+      headers: {
+        'X-Api-Key':    API_KEY,
+        'X-Claude-Key': apiKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: userContent }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error?.message || `API error ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const raw  = data.content[0].text.trim();
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Could not parse response — try again');
+
+    pendingImport = JSON.parse(match[0]);
+    renderImportPreview(pendingImport);
+
+  } catch(e) {
+    toast('Error: ' + e.message);
+  } finally {
+    btn.textContent = 'Extract from email';
+    btn.disabled = false;
+  }
+};
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload  = e => resolve(e.target.result.split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+function renderImportPreview(data) {
+  const hw  = data.homework  || [];
+  const fx  = data.fixtures  || [];
+  const kd  = data.keyDates  || [];
+  const total = hw.length + fx.length + kd.length;
+
+  let html = '';
+
+  if (data.summary) {
+    html += `<div class="card" style="background:#eaf4ff;border:1.5px solid #b8d8f8;margin-bottom:12px">
+      <div style="font-size:0.88rem;color:var(--navy)">📧 ${data.summary}</div>
+    </div>`;
+  }
+
+  if (total === 0) {
+    html += `<div class="card"><div class="empty"><div class="empty-icon">🤷</div>Nothing to add was found in this email</div></div>`;
+    qs('imPreviewContent').innerHTML = html;
+    qs('imPreview').style.display = 'block';
+    return;
+  }
+
+  if (hw.length) {
+    html += `<div class="sec-title">Homework (${hw.length})</div><div class="card">`;
+    hw.forEach((h, i) => {
+      const due = h.dueDate ? fmt(h.dueDate, {weekday:'short',day:'numeric',month:'short'}) : 'TBC';
+      html += `<div class="mgr-row">
+        <div class="hw-info">
+          <div class="hw-subject">${h.subject}</div>
+          <div class="hw-desc">${h.description}</div>
+          <div class="hw-meta">Due: ${due}</div>
+        </div>
+        <input type="checkbox" checked data-type="hw" data-idx="${i}" style="width:20px;height:20px;flex-shrink:0;cursor:pointer">
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (fx.length) {
+    html += `<div class="sec-title">Fixtures (${fx.length})</div><div class="card">`;
+    fx.forEach((f, i) => {
+      const when = f.date ? fmt(f.date, {weekday:'short',day:'numeric',month:'short'}) : 'TBC';
+      html += `<div class="mgr-row">
+        <div class="hw-info">
+          <div class="hw-subject">${f.sport}</div>
+          <div class="hw-desc">${f.opponent || 'TBC'}</div>
+          <div class="hw-meta">${when}${f.time ? ' · ' + f.time + ' meet' : ''}${f.venue ? ' · ' + f.venue : ''}</div>
+        </div>
+        <input type="checkbox" checked data-type="fx" data-idx="${i}" style="width:20px;height:20px;flex-shrink:0;cursor:pointer">
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (kd.length) {
+    html += `<div class="sec-title">Key dates (${kd.length})</div><div class="card">`;
+    kd.forEach((k, i) => {
+      const when = k.date ? fmt(k.date, {weekday:'short',day:'numeric',month:'short',year:'numeric'}) : 'TBC';
+      html += `<div class="mgr-row">
+        <div class="hw-info">
+          <div class="hw-subject">${k.title}</div>
+          ${k.notes ? `<div class="hw-desc">${k.notes}</div>` : ''}
+          <div class="hw-meta">${when}</div>
+        </div>
+        <input type="checkbox" checked data-type="kd" data-idx="${i}" style="width:20px;height:20px;flex-shrink:0;cursor:pointer">
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  qs('imPreviewContent').innerHTML = html;
+  qs('imPreview').style.display = 'block';
+  qs('imPreview').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+window.confirmImport = async () => {
+  if (!pendingImport) return;
+
+  const boxes = document.querySelectorAll('#imPreviewContent input[type="checkbox"]');
+  const promises = [];
+  let count = 0;
+
+  boxes.forEach(cb => {
+    if (!cb.checked) return;
+    const type = cb.dataset.type;
+    const idx  = parseInt(cb.dataset.idx);
+
+    if (type === 'hw') {
+      const h = pendingImport.homework[idx];
+      promises.push(apiPost('homework', {
+        subject: h.subject, description: h.description,
+        setDate: h.setDate || ds(new Date()), dueDate: h.dueDate || '',
+        done: false, createdAt: new Date().toISOString()
+      }));
+    } else if (type === 'fx') {
+      const f = pendingImport.fixtures[idx];
+      promises.push(apiPost('fixtures', {
+        date: f.date, sport: f.sport,
+        opponent: f.opponent||'', venue: f.venue||'',
+        time: f.time||'', returnTime: f.returnTime||'',
+        kit: f.kit||'', createdAt: new Date().toISOString()
+      }));
+    } else if (type === 'kd') {
+      const k = pendingImport.keyDates[idx];
+      promises.push(apiPost('keyDates', {
+        title: k.title, date: k.date,
+        category: k.category||'school', notes: k.notes||'',
+        createdAt: new Date().toISOString()
+      }));
+    }
+    count++;
+  });
+
+  try {
+    await Promise.all(promises);
+    toast(`${count} item${count !== 1 ? 's' : ''} added to planner ✓`);
+    await loadAll();
+    cancelImport();
+  } catch { toast('Error adding items — check connection'); }
+};
+
+window.cancelImport = () => {
+  pendingImport = null;
+  qs('imText').value  = '';
+  qs('imFile').value  = '';
+  qs('imPreview').style.display = 'none';
+  qs('imPreviewContent').innerHTML = '';
+};
+
+// ── Navigation ──────────────────────────────────────────────────────
+window.showView = name => {
+  ['Today','Week','Month','Manage'].forEach(v => {
+    qs(`v${v}`).classList.toggle('active', v===name);
+    qs(`n${v}`).classList.toggle('active', v===name);
+  });
+  if (name==='Week')   renderWeek();
+  if (name==='Month')  renderMonth();
+  if (name==='Manage') { renderAllHw(); renderAllFx(); renderAllKd(); renderWaToggles(); }
+};
+
+window.swTab = (tab, btn) => {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const map = {hw:'tHw', wa:'tWa', fx:'tFx', kd:'tKd', bk:'tBk', st:'tSt', im:'tIm'};
+  qs(map[tab]).classList.add('active');
+  if (tab==='wa') renderWaToggles();
+  if (tab==='fx') renderAllFx();
+  if (tab==='kd') renderAllKd();
+  if (tab==='bk') renderBooks();
+  if (tab==='st') renderForms();
+  if (tab==='im') initImport();
+};
+
+// ── Toast ────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = qs('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+window.toast = toast;
+
+// ── Go ────────────────────────────────────────────────────────────────
+// The PIN script runs first. It calls window._startApp() when unlocked.
+// If the session was already unlocked (window._pinOk), start immediately.
+window._startApp = init;
+window._toast    = toast;
+if (window._pinOk) init();
+</script>
+</body>
+</html>

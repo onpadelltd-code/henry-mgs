@@ -167,6 +167,20 @@ td .spark{vertical-align:middle}
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--gold);color:#081430;font-family:'Bungee';font-size:14px;padding:12px 22px;border-radius:14px;z-index:99;transition:.35s cubic-bezier(.6,0,.2,1.4);box-shadow:0 8px 24px #00000060}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
+/* ---------- screen-time bank ---------- */
+.screen-banner{margin:4px 0 14px;background:linear-gradient(135deg,#12321f,#0e2a4d);border:1px solid var(--green);border-radius:14px;padding:13px 16px;font-weight:800;font-size:15px;animation:pop .3s}
+.screen-banner b{color:var(--green)}
+.screen-banner span{display:block;font-size:12px;color:var(--ink-dim);font-weight:700;margin-top:3px}
+.screen-banner.dim{border-color:var(--line);background:#0a1a3a;color:var(--ink-dim);font-size:13px}
+.screen-card{display:flex;align-items:center;gap:14px;padding:14px 18px}
+.screen-card .big{font-family:'Bungee';font-size:26px;color:var(--green)}
+.screen-card .lbl{font-size:12px;font-weight:800;color:var(--ink-dim)}
+.spend-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.spend-row button{background:#12321f;border:1px solid var(--green);color:var(--green);border-radius:12px;padding:9px 14px;font-weight:900;font-size:13px;cursor:pointer}
+.st-set{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.st-set label{font-size:10px;font-weight:900;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.5px;display:block}
+.st-set input{width:100%;background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px;color:var(--ink);font-weight:800;font-size:14px;text-align:center}
+
 /* ---------- family PIN gate ---------- */
 #pinGate{position:fixed;inset:0;z-index:200;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;padding:20px}
 .pin-card{background:var(--panel);border:1px solid var(--gold-dim);border-radius:22px;padding:34px 28px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 40px #ffc84518}
@@ -217,6 +231,14 @@ td .spark{vertical-align:middle}
     <button class="big-btn" id="btnMission" onclick="startMission()">🚀 START MISSION</button>
   </div>
 
+  <div class="card screen-card" id="screenCard" style="display:none">
+    <span style="font-size:30px">🎮</span>
+    <div>
+      <div class="big" id="screenBank">0 min</div>
+      <div class="lbl" id="screenHint">iPad time earned — complete today's mission to earn more!</div>
+    </div>
+  </div>
+
   <div class="sec-title">Your Skill Belts</div>
   <div class="skill-grid" id="skillGrid"></div>
 
@@ -261,6 +283,7 @@ td .spark{vertical-align:middle}
       <div class="res-cell"><div class="v g" id="resXP">+0</div><div class="l">xp earned</div></div>
       <div class="res-cell"><div class="v" id="resTime">0m</div><div class="l">time</div></div>
     </div>
+    <div id="resScreen"></div>
     <div class="sec-title" style="margin-top:4px">Power Changes</div>
     <div class="delta-list" id="resDeltas"></div>
     <button class="big-btn done" onclick="goHome()">🏠 BACK TO HQ</button>
@@ -283,6 +306,8 @@ td .spark{vertical-align:middle}
     <div class="parent-note" id="pAdvice"></div>
     <div class="sec-title">Recent slips (what to chat about)</div>
     <div id="pSlips"></div>
+    <div class="sec-title">Screen-Time Rewards 🎮</div>
+    <div id="screenBox"></div>
     <div class="sec-title">Auto-Coach — self-improving question bank</div>
     <div id="coachBox"></div>
     <div class="sec-title">Data</div>
@@ -354,7 +379,8 @@ function freshState(){
   for(const s of STRANDS)skills[s.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
   return {name:'Henry',xp:0,streak:0,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
     extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
-    coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0}};
+    coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0},
+    screen:{on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]}};
 }
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||freshState();}catch(e){S=freshState();}
@@ -363,6 +389,7 @@ for(const st of STRANDS)if(!S.skills[st.id])S.skills[st.id]={rating:1050,attempt
 if(!S.extra)S.extra={spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]};
 if(!S.mastered)S.mastered={};
 if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
+if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
 function save(){localStorage.setItem(KEY,JSON.stringify(S));}
 
 /* ---------- Elo engine ---------- */
@@ -811,6 +838,19 @@ function finishQuiz(aborted){
       S.streak=(S.lastMission===yest)?S.streak+1:1;
       S.lastMission=t;
     }
+    // screen-time rewards: first completed mission of the day earns iPad minutes
+    if(S.screen.on&&S.screen.lastEarn!==t){
+      const pct=QUIZ.correct/QUIZ.qs.length;
+      let earn=(+S.screen.base||0)+(pct>=.9?+S.screen.b90:pct>=.75?+S.screen.b75:pct>=.6?+S.screen.b60:0);
+      if(S.streak>=3)earn+=(+S.screen.sb||0);
+      earn=Math.max(0,Math.min(earn,+S.screen.cap||45));
+      if(earn>0){
+        S.screen.bank+=earn;S.screen.lastEarn=t;
+        S.screen.log.unshift({t,mins:earn,pct:Math.round(pct*100)});
+        if(S.screen.log.length>30)S.screen.log.pop();
+        QUIZ.screenEarned=earn;
+      }
+    }
     S.log.push({t,correct:QUIZ.correct,total:QUIZ.qs.length,xp:QUIZ.xp,mins});
     if(S.log.length>120)S.log.shift();
     checkBadges();
@@ -820,6 +860,10 @@ function finishQuiz(aborted){
   $('resScore').textContent=QUIZ.correct+'/'+QUIZ.qs.length;
   $('resXP').textContent='+'+QUIZ.xp;
   $('resTime').textContent=mins+'m';
+  $('resScreen').innerHTML=QUIZ.screenEarned
+    ?`<div class="screen-banner">🎮 <b>+${QUIZ.screenEarned} minutes</b> of iPad time earned!<br><span>Bank total: ${S.screen.bank} min — ask a grown-up to cash in</span></div>`
+    :(QUIZ.mission&&S.screen.on&&S.screen.lastEarn===today()&&!QUIZ.screenEarned&&S.missions>1
+      ?`<div class="screen-banner dim">🎮 Today's iPad time is already banked — extra missions are pure brain power!</div>`:'');
   const pct=QUIZ.correct/QUIZ.qs.length;
   $('resTitle').textContent=QUIZ.mission?'MISSION COMPLETE!':'TRAINING DONE!';
   $('resMsg').textContent=pct>=0.9?'Outstanding, agent. The Owl is impressed. 🦉':pct>=0.7?'Great work — that\'s exactly the right level of challenge!':'Tough mission — every slip you fix makes you stronger!';
@@ -879,6 +923,15 @@ function renderHome(){
   $('btnMission').textContent=doneToday?'💪 EXTRA MISSION':'🚀 START MISSION';
   const due=dueFixit().length;
   if(due&&!doneToday)$('launchSub').textContent=due+' fix-it question'+(due>1?'s':'')+' ready + new challenges';
+  // screen-time bank card
+  const sc=$('screenCard');
+  if(S.screen.on){
+    sc.style.display='flex';
+    $('screenBank').textContent=S.screen.bank+' min';
+    $('screenHint').textContent=S.screen.lastEarn===today()
+      ?'iPad time earned — cash in with a grown-up! 🎉'
+      :'iPad time bank — complete today\'s mission to earn up to '+S.screen.cap+' min!';
+  }else sc.style.display='none';
   $('skillGrid').innerHTML=STRANDS.map(s=>skillCardHTML(s,'startPractice')).join('');
   $('badgeRow').innerHTML=BADGES.map(([id,ic,nm])=>`<div class="badge ${S.badges.includes(id)?'won':''}"><div class="bi">${ic}</div><div class="bn">${nm}</div></div>`).join('');
 }
@@ -1049,6 +1102,54 @@ function coachMerge(d){
     {sOd.add(norm(it.answer));push('odd',[it.options,it.answer,it.why||'',clampD(it.diff)]);}
   return added;
 }
+/* ---------- screen-time rewards (parent controls) ---------- */
+function screenSpend(mins){
+  const amt=mins==='all'?S.screen.bank:Math.min(mins,S.screen.bank);
+  if(amt<=0)return;
+  S.screen.bank-=amt;
+  S.screen.log.unshift({t:today(),spent:amt});
+  if(S.screen.log.length>30)S.screen.log.pop();
+  save();renderScreen();toast('🎮 '+amt+' min cashed in');
+}
+function screenAdjust(){
+  const v=prompt('Set the bank to how many minutes? (current: '+S.screen.bank+')');
+  if(v===null)return;const n=Math.max(0,Math.round(+v||0));
+  S.screen.bank=n;save();renderScreen();
+}
+function screenSet(field,val){
+  S.screen[field]=Math.max(0,Math.round(+val||0));save();
+}
+function toggleScreen(){S.screen.on=!S.screen.on;save();renderScreen();}
+function renderScreen(){
+  const box=$('screenBox');if(!box)return;
+  const sc=S.screen;
+  const hist=sc.log.slice(0,7).map(l=>l.spent
+    ?`<div class="slip-item">🕹️ ${l.t} — spent <b style="color:var(--cyan)">${l.spent} min</b></div>`
+    :`<div class="slip-item">✅ ${l.t} — earned <i>${l.mins} min</i> (${l.pct}% accuracy)</div>`).join('');
+  box.innerHTML=!sc.on
+   ?`<div style="font-size:13px;color:var(--ink-dim)">Screen-time rewards are <b>off</b>.</div>
+     <div class="tool-row"><button onclick="toggleScreen()">Turn on</button></div>`
+   :`<div style="font-size:13px;line-height:1.7">
+      Bank balance: <b style="color:var(--green);font-size:17px">${sc.bank} min</b> of iPad time
+      <span style="color:var(--ink-dim)">· earned by completing the first mission each day (base ${sc.base} + accuracy bonus + ${sc.sb} streak bonus, max ${sc.cap}/day)</span></div>
+     <div class="spend-row">
+      <button onclick="screenSpend(15)">Cash in 15</button>
+      <button onclick="screenSpend(30)">Cash in 30</button>
+      <button onclick="screenSpend('all')">Cash in all</button>
+      <button style="background:#0a1a3a;border-color:var(--line);color:var(--ink-dim)" onclick="screenAdjust()">Adjust…</button>
+     </div>
+     <div class="st-set">
+      <div><label>Base min</label><input type="number" value="${sc.base}" onchange="screenSet('base',this.value)"></div>
+      <div><label>90%+ bonus</label><input type="number" value="${sc.b90}" onchange="screenSet('b90',this.value)"></div>
+      <div><label>75%+ bonus</label><input type="number" value="${sc.b75}" onchange="screenSet('b75',this.value)"></div>
+      <div><label>60%+ bonus</label><input type="number" value="${sc.b60}" onchange="screenSet('b60',this.value)"></div>
+      <div><label>Streak bonus</label><input type="number" value="${sc.sb}" onchange="screenSet('sb',this.value)"></div>
+      <div><label>Daily cap</label><input type="number" value="${sc.cap}" onchange="screenSet('cap',this.value)"></div>
+     </div>
+     ${hist?'<div style="margin-top:10px">'+hist+'</div>':''}
+     <div class="tool-row"><button onclick="toggleScreen()">Turn off rewards</button></div>`;
+}
+
 function saveCoachKey(){
   const v=$('coachKey').value.trim();
   S.coach.apiKey=v;save();renderCoach();
@@ -1085,7 +1186,7 @@ function showView(v){
   }
   if(v==='home')renderHome();
   if(v==='practice')renderPractice();
-  if(v==='parent'){renderParent();renderCoach();}
+  if(v==='parent'){renderParent();renderCoach();renderScreen();}
   window.scrollTo(0,0);
 }
 function goHome(){showView('home');}

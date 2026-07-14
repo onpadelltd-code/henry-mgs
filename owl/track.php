@@ -100,6 +100,12 @@ if ($snap && !empty($snap['ratings'])) {
   $rt = $snap['ratings']; asort($rt);
   $weak = implode(' and ', array_map('h', array_slice(array_keys($rt), 0, 2)));
 }
+$pendHtml = '';
+if ($snap && !empty($snap['pending'])) {
+  foreach ($snap['pending'] as $p) {
+    $pendHtml .= "<li style='margin:4px 0;color:#444'><b>" . h($p['n'] ?? '') . "</b> — " . h($p['c'] ?? '') . " owl-min</li>";
+  }
+}
 $slipsHtml = '';
 if ($snap && !empty($snap['slips'])) {
   foreach (array_slice($snap['slips'],0,5) as $s) {
@@ -131,6 +137,7 @@ $html = "<div style='font-family:-apple-system,Segoe UI,Arial,sans-serif;max-wid
     $stats"
   . ($rows ? "<h3 style='font-size:13px;color:#888;text-transform:uppercase;letter-spacing:1px;margin:18px 0 6px'>Skill power (vs last report)</h3>
     <table width='100%' style='border-collapse:collapse;font-size:14px'>$rows</table>" : "")
+  . ($pendHtml ? "<h3 style='font-size:13px;color:$GOLD;text-transform:uppercase;letter-spacing:1px;margin:18px 0 6px'>🎁 Reward requests awaiting your approval</h3><ul style='font-size:13px;padding-left:18px'>$pendHtml</ul>" : "")
   . ($weak ? "<p style='font-size:13px;color:#555;margin:14px 0'><b>Focus areas:</b> tomorrow's mission will target <b>$weak</b>.</p>" : "")
   . ($slipsHtml ? "<h3 style='font-size:13px;color:#888;text-transform:uppercase;letter-spacing:1px;margin:18px 0 6px'>Recent slips (dinner-table chat)</h3><ul style='font-size:13px;padding-left:18px'>$slipsHtml</ul>" : "")
   . ($snap && !empty($snap['coach']) ? "<p style='font-size:12px;color:#999'>Auto-Coach has added " . h($snap['coach']) . " questions to date.</p>" : "")

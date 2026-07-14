@@ -183,6 +183,20 @@ td .spark{vertical-align:middle}
 .st-set label{font-size:10px;font-weight:900;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.5px;display:block}
 .st-set input{width:100%;background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px;color:var(--ink);font-weight:800;font-size:14px;text-align:center}
 
+/* ---------- reward shop ---------- */
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shop-item{background:#0a1a3a;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.shop-item .ic{font-size:26px}
+.shop-item .nm{font-size:12px;font-weight:800;margin:4px 0 2px;line-height:1.3}
+.shop-item .cost{font-size:11px;font-weight:900;color:var(--gold)}
+.shop-item button{margin-top:8px;width:100%;background:linear-gradient(180deg,#3ddc84,#1d9e55);border:none;border-radius:10px;color:#04160b;font-weight:900;font-size:12px;padding:8px;cursor:pointer}
+.shop-item button:disabled{background:#152547;color:#44598a;cursor:default}
+.pend-item{display:flex;align-items:center;gap:8px;background:#33270e;border:1px solid var(--gold-dim);border-radius:12px;padding:9px 12px;margin:6px 0;font-size:13px;font-weight:700}
+.pend-item .grow{flex:1}
+.pend-item button{border:none;border-radius:9px;padding:7px 12px;font-weight:900;font-size:12px;cursor:pointer}
+.pend-ok{background:var(--green);color:#04160b}
+.pend-no{background:#3a1622;color:var(--coral);border:1px solid var(--coral)!important}
+
 /* ---------- family PIN gate ---------- */
 #pinGate,#ppinGate{position:fixed;inset:0;z-index:200;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;padding:20px}
 #ppinGate{background:#081430f2;backdrop-filter:blur(6px)}
@@ -246,11 +260,17 @@ td .spark{vertical-align:middle}
   </div>
 
   <div class="card screen-card" id="screenCard" style="display:none">
-    <span style="font-size:30px">🎮</span>
+    <span style="font-size:30px">🦉</span>
     <div>
       <div class="big" id="screenBank">0 min</div>
-      <div class="lbl" id="screenHint">iPad time earned — complete today's mission to earn more!</div>
+      <div class="lbl" id="screenHint">Owl-minutes earned — complete today's mission to earn more!</div>
     </div>
+  </div>
+
+  <div class="card" id="shopCard" style="display:none">
+    <div class="sec-title" style="margin:0 0 10px">🎁 Reward Shop — your minutes, your choice!</div>
+    <div class="shop-grid" id="shopGrid"></div>
+    <div id="shopPendingNote" style="font-size:12px;color:var(--ink-dim);font-weight:700;margin-top:8px"></div>
   </div>
 
   <div class="sec-title">Your Skill Belts</div>
@@ -395,7 +415,16 @@ function freshState(){
   return {name:'Henry',xp:0,streak:0,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
     extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
     coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0},
-    screen:{on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]}};
+    screen:{on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]},
+    shop:defaultShop()};
+}
+function defaultShop(){
+  return {items:[
+    {id:'ipad', icon:'📱', name:'15 min iPad time',  cost:15,  on:true},
+    {id:'ps5',  icon:'🎮', name:'15 min PS5 time',   cost:15,  on:true},
+    {id:'robux',icon:'💎', name:'£5 Robux voucher',  cost:150, on:true},
+    {id:'cash', icon:'💷', name:'£1 pocket money',   cost:30,  on:true},
+  ],pending:[]};
 }
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||freshState();}catch(e){S=freshState();}
@@ -405,6 +434,7 @@ if(!S.extra)S.extra={spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]};
 if(!S.mastered)S.mastered={};
 if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
 if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
+if(!S.shop)S.shop=defaultShop();
 function save(){S._ts=Date.now();localStorage.setItem(KEY,JSON.stringify(S));pushState();}
 
 /* ---------- cross-device sync (iPad <-> fridge <-> phones) ---------- */
@@ -438,6 +468,7 @@ async function pullState(){
     if(!S.mastered)S.mastered={};
     if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
     if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
+if(!S.shop)S.shop=defaultShop();
     if(localKey)S.coach.apiKey=localKey;
     localStorage.setItem(KEY,JSON.stringify(S));            // direct write: no push-back loop
     if(!$('view-home').classList.contains('hidden'))renderHome();
@@ -1011,15 +1042,16 @@ function renderHome(){
   $('btnMission').textContent=doneToday?'💪 EXTRA MISSION':'🚀 START MISSION';
   const due=dueFixit().length;
   if(due&&!doneToday)$('launchSub').textContent=due+' fix-it question'+(due>1?'s':'')+' ready + new challenges';
-  // screen-time bank card
+  // owl-minutes bank + reward shop
   const sc=$('screenCard');
   if(S.screen.on){
     sc.style.display='flex';
     $('screenBank').textContent=S.screen.bank+' min';
     $('screenHint').textContent=S.screen.lastEarn===today()
-      ?'iPad time earned — cash in with a grown-up! 🎉'
-      :'iPad time bank — complete today\'s mission to earn up to '+S.screen.cap+' min!';
-  }else sc.style.display='none';
+      ?'Owl-minutes earned — spend them in the Reward Shop! 🎉'
+      :'Owl-minute bank — complete today\'s mission to earn up to '+S.screen.cap+'!';
+    renderShop();
+  }else{sc.style.display='none';$('shopCard').style.display='none';}
   $('skillGrid').innerHTML=STRANDS.map(s=>skillCardHTML(s,'startPractice')).join('');
   $('badgeRow').innerHTML=BADGES.map(([id,ic,nm])=>`<div class="badge ${S.badges.includes(id)?'won':''}"><div class="bi">${ic}</div><div class="bn">${nm}</div></div>`).join('');
 }
@@ -1100,6 +1132,7 @@ function syncSnapshot(){
              total:todayLogs.reduce((a,l)=>a+l.total,0)},
       ratings:Object.fromEntries(STRANDS.map(s=>[s.name,S.skills[s.id].rating])),
       slips:S.slips.slice(0,5).map(x=>({s:x.skill,q:String(x.q).slice(0,90),g:String(x.given).slice(0,30),a:String(x.ans).slice(0,30)})),
+      pending:S.shop.pending.map(p=>({n:p.name,c:p.cost})),
       coach:S.coach.added
     };
     fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
@@ -1220,6 +1253,54 @@ function coachMerge(d){
     {sOd.add(norm(it.answer));push('odd',[it.options,it.answer,it.why||'',clampD(it.diff)]);}
   return added;
 }
+/* ---------- reward shop (child chooses, grown-up approves) ---------- */
+function renderShop(){
+  const card=$('shopCard');if(!card)return;
+  const items=S.shop.items.filter(i=>i.on);
+  if(!items.length){card.style.display='none';return;}
+  card.style.display='block';
+  $('shopGrid').innerHTML=items.map(i=>{
+    const afford=S.screen.bank>=i.cost;
+    return `<div class="shop-item">
+      <div class="ic">${i.icon}</div>
+      <div class="nm">${i.name}</div>
+      <div class="cost">${i.cost} owl-min</div>
+      <button ${afford?'':'disabled'} onclick="redeemReward('${i.id}')">${afford?'GET IT!':'keep earning…'}</button>
+    </div>`;
+  }).join('');
+  const p=S.shop.pending.length;
+  $('shopPendingNote').textContent=p?'⏳ '+p+' request'+(p>1?'s':'')+' waiting for a grown-up to approve':'';
+}
+function redeemReward(id){
+  const item=S.shop.items.find(i=>i.id===id);
+  if(!item||S.screen.bank<item.cost)return;
+  S.screen.bank-=item.cost;
+  S.shop.pending.push({ts:Date.now(),t:today(),id:item.id,name:item.name,cost:item.cost});
+  save();renderHome();
+  toast('🎁 Request sent to your grown-ups!');
+}
+function approveRedeem(ts){
+  const i=S.shop.pending.findIndex(p=>p.ts===ts);if(i<0)return;
+  const p=S.shop.pending.splice(i,1)[0];
+  S.screen.log.unshift({t:today(),redeem:p.name,mins:p.cost});
+  if(S.screen.log.length>30)S.screen.log.pop();
+  save();renderScreen();toast('✅ '+p.name+' approved');
+}
+function denyRedeem(ts){
+  const i=S.shop.pending.findIndex(p=>p.ts===ts);if(i<0)return;
+  const p=S.shop.pending.splice(i,1)[0];
+  S.screen.bank+=p.cost;  // refund
+  S.screen.log.unshift({t:today(),denied:p.name,mins:p.cost});
+  if(S.screen.log.length>30)S.screen.log.pop();
+  save();renderScreen();toast('↩ Refunded '+p.cost+' min');
+}
+function setShopItem(id,field,val){
+  const item=S.shop.items.find(i=>i.id===id);if(!item)return;
+  if(field==='cost')item.cost=Math.max(1,Math.round(+val||item.cost));
+  if(field==='on')item.on=!!val;
+  save();
+}
+
 /* ---------- screen-time rewards (parent controls) ---------- */
 function screenSpend(mins){
   const amt=mins==='all'?S.screen.bank:Math.min(mins,S.screen.bank);
@@ -1241,15 +1322,29 @@ function toggleScreen(){S.screen.on=!S.screen.on;save();renderScreen();}
 function renderScreen(){
   const box=$('screenBox');if(!box)return;
   const sc=S.screen;
-  const hist=sc.log.slice(0,7).map(l=>l.spent
-    ?`<div class="slip-item">🕹️ ${l.t} — spent <b style="color:var(--cyan)">${l.spent} min</b></div>`
+  const hist=sc.log.slice(0,7).map(l=>
+    l.spent   ?`<div class="slip-item">🕹️ ${l.t} — spent <b style="color:var(--cyan)">${l.spent} min</b></div>`
+    :l.redeem ?`<div class="slip-item">🎁 ${l.t} — <b style="color:var(--green)">${l.redeem}</b> approved (${l.mins} min)</div>`
+    :l.denied ?`<div class="slip-item">↩ ${l.t} — ${l.denied} denied, ${l.mins} min refunded</div>`
     :`<div class="slip-item">✅ ${l.t} — earned <i>${l.mins} min</i> (${l.pct}% accuracy)</div>`).join('');
+  const pend=S.shop.pending.map(p=>`<div class="pend-item"><span>${(S.shop.items.find(i=>i.id===p.id)||{icon:'🎁'}).icon}</span>
+    <span class="grow">${p.name} <span style="color:var(--ink-dim)">· ${p.cost} min · ${p.t}</span></span>
+    <button class="pend-ok" onclick="approveRedeem(${p.ts})">Approve</button>
+    <button class="pend-no" onclick="denyRedeem(${p.ts})">Deny</button></div>`).join('');
+  const shopSet=S.shop.items.map(i=>`<div style="display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px;font-weight:700">
+    <input type="checkbox" ${i.on?'checked':''} onchange="setShopItem('${i.id}','on',this.checked)">
+    <span style="flex:1">${i.icon} ${i.name}</span>
+    <input type="number" value="${i.cost}" style="width:64px;background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:5px;color:var(--ink);font-weight:800;text-align:center" onchange="setShopItem('${i.id}','cost',this.value)">
+    <span style="color:var(--ink-dim);font-size:11px">min</span></div>`).join('');
   box.innerHTML=!sc.on
    ?`<div style="font-size:13px;color:var(--ink-dim)">Screen-time rewards are <b>off</b>.</div>
      <div class="tool-row"><button onclick="toggleScreen()">Turn on</button></div>`
-   :`<div style="font-size:13px;line-height:1.7">
-      Bank balance: <b style="color:var(--green);font-size:17px">${sc.bank} min</b> of iPad time
-      <span style="color:var(--ink-dim)">· earned by completing the first mission each day (base ${sc.base} + accuracy bonus + ${sc.sb} streak bonus, max ${sc.cap}/day)</span></div>
+   :`${pend?'<div style="font-size:12px;font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🎁 Reward requests — needs your decision</div>'+pend:''}
+     <div style="font-size:13px;line-height:1.7">
+      Bank balance: <b style="color:var(--green);font-size:17px">${sc.bank} min</b> of Owl-minutes
+      <span style="color:var(--ink-dim)">· earned by completing the first mission each day (base ${sc.base} + accuracy bonus + ${sc.sb} streak bonus, max ${sc.cap}/day). ${S.name} chooses his own rewards in the shop; approving an item here is your cue to grant the time / buy the voucher / make the transfer.</span></div>
+     <div style="margin-top:10px;font-size:11px;font-weight:900;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.5px">Reward shop prices</div>
+     ${shopSet}
      <div class="spend-row">
       <button onclick="screenSpend(15)">Cash in 15</button>
       <button onclick="screenSpend(30)">Cash in 30</button>

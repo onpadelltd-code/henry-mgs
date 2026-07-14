@@ -375,7 +375,7 @@ td .spark{vertical-align:middle}
       </select>
       School year:
       <select id="yearSel" onchange="changeYear(this.value)" style="background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--ink);font-weight:800">
-        <option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option>
+        <option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option>
         <option value="5">Year 5</option><option value="6">Year 6</option><option value="7">Year 7</option>
       </select>
       <span id="sylStatus" style="font-size:11px;color:var(--ink-dim)"></span>
@@ -501,6 +501,15 @@ function pushState(){
       pushLeague();
     }catch(e){}
   },4000);
+}
+async function pullCoachKey(){
+  if(location.protocol==='file:')return;
+  try{
+    const r=await fetch('track.php?coachkey=1&token=owl-1515-hoot',{cache:'no-store'});
+    if(!r.ok)return;
+    const j=await r.json();
+    if(j.key&&j.key!==S.coach.apiKey){S.coach.apiKey=j.key;save();if(typeof renderCoach==='function')renderCoach();}
+  }catch(e){}
 }
 async function pullState(){
   if(location.protocol==='file:'||QUIZ)return;             // never adopt mid-quiz
@@ -1218,7 +1227,7 @@ const COACH_SCHEMA={type:'object',additionalProperties:false,
 function initYearGate(){
   if(S.year)return;
   const g=$('yearGate');g.style.display='flex';
-  $('yearBtns').innerHTML=[2,3,4,5,6,7].map(y=>`<button onclick="setYear(${y})">Year ${y}</button>`).join('');
+  $('yearBtns').innerHTML=[1,2,3,4,5,6,7].map(y=>`<button onclick="setYear(${y})">Year ${y}</button>`).join('');
 }
 function setYear(y){
   S.year=+y;
@@ -1232,7 +1241,7 @@ function setYear(y){
 }
 function seedRatingsForYear(){
   // only untouched skills are reseeded — established ratings are never clobbered
-  const seed=Math.max(850,Math.min(1350,1050+(S.year-4)*100));
+  const seed=Math.max(700,Math.min(1350,1050+(S.year-4)*100));
   for(const st of STRANDS)if(S.skills[st.id].attempts===0)S.skills[st.id].rating=seed;
 }
 function changeYear(y){
@@ -1308,11 +1317,11 @@ STRICT RULES:
   antonym words: ${have('ant')}
   French: ${have('fr')}
   odd-one-out answers: ${have('odd')}
-- spell: real English words with two PLAUSIBLE misspellings a child would actually write (12 items).
-- gram: Year 4 grammar MCQs — word classes, homophones, apostrophes, fronted adverbials, irregular verbs; the question may contain simple HTML like <span class="hl">...</span> to highlight; 2-3 wrong options; short child-friendly explanation (8 items).
+- spell: real English words appropriate to this child's school year with two PLAUSIBLE misspellings a child that age would actually write (12 items).
+- gram: grammar MCQs pitched to this child's school year (younger years: simple word classes, plurals, capital letters; older years: homophones, apostrophes, fronted adverbials, irregular verbs); the question may contain simple HTML like <span class="hl">...</span> to highlight; 2-3 wrong options; short child-friendly explanation (8 items).
 - syn: "means the same as" with 3 wrong options — include ambitious vocabulary (12 items).
 - ant: opposites with 3 wrong options (4 items).
-- fr: French↔English pairs a Year 4 beginner should learn: greetings, numbers 21-31, colours, family, food, classroom, weather (14 items).
+- fr: French↔English pairs a beginner of this child's age should learn (younger children: greetings, numbers to 10, colours; older: numbers 21-31, family, food, classroom, weather) (14 items).
 - odd: odd-one-out sets of exactly 4 options with a clear single answer and a one-line why (6 items).`;
 }
 async function coachRefresh(manual){
@@ -1656,7 +1665,7 @@ function changeParentPin(){
   pushLeague();renderLeague();              // owl league: report in + show the board
   setInterval(pullState,300000);            // fridge/scoreboard mode: refresh every 5 min
   setInterval(renderLeague,300000);
-  setTimeout(()=>{if(coachNeeded())coachRefresh(false);},2500);
+  setTimeout(async()=>{await pullCoachKey();if(coachNeeded())coachRefresh(false);},2500);
   setTimeout(()=>{syncSnapshot();syncPing();},4000);
 })();
 </script>

@@ -782,7 +782,13 @@ function renderQuestion(){
     setTimeout(()=>inp.focus(),50);
   }
   stopTimer();
-  if(q.sprint)startTimer(10,()=>{if(!answered)submitAnswer('⌛ (out of time)',null);});
+  // timer expiry only forfeits the speed bonus — it never marks the answer wrong
+  if(q.sprint)startTimer(10,()=>{
+    if(answered)return;
+    q.sprint=false;
+    const tag=$('qTag');tag.className='q-tag';
+    tag.innerHTML='⌛ Time\'s up for the bonus — no rush now, just get it right!';
+  });
 }
 function submitTyped(){const v=$('qInput').value;if(v.trim()==='')return;submitAnswer(v,null);}
 

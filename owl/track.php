@@ -8,7 +8,7 @@
    ============================================================ */
 date_default_timezone_set('Europe/London');
 $TOKEN = 'owl-1515-hoot';
-$TO    = 'timsharrock@me.com';
+$TO    = 'timsharrock@me.com, laura.hutton_88@live.co.uk';
 $FROM  = 'Owl Academy <owl@cell-tech.co.uk>';
 $DATA  = __DIR__ . '/owl-data.json';
 $SEND_HOUR = 17; // 5pm London
@@ -120,7 +120,7 @@ $html = "<div style='font-family:-apple-system,Segoe UI,Arial,sans-serif;max-wid
 
 if ($debug) { header('Content-Type: text/html; charset=utf-8'); echo $html; exit; }
 
-$headers = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\nFrom: $FROM\r\nReply-To: $TO\r\n";
+$headers = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\nFrom: $FROM\r\nReply-To: timsharrock@me.com\r\n";
 $ok = @mail($TO, $subject, $html, $headers);
 if ($ok && !$test) { $db['lastEmail'] = $today; store_db($DATA, $db); }
 exit($ok ? 'sent' : 'mailfail');

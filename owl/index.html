@@ -397,9 +397,9 @@ td .spark{vertical-align:middle}
     <div class="parent-note" style="margin-top:10px">
       <b>How it works:</b> every answer updates a per-skill "power" rating (an Elo engine — the same maths chess ratings use).
       Questions are auto-pitched so Henry succeeds about 7 times in 10 — hard enough to stretch, easy enough to stay fun.
-      Missed questions come back after 1, 3 and 7 days (spaced repetition); questions he beats 3 times in a row are retired.
-      Daily missions automatically focus on his two weakest skills, and Auto-Coach writes brand-new questions aimed at his
-      mistakes as he progresses — so the app keeps up with him all summer.
+      Missed questions come back after 1, 3 and 7 days (spaced repetition); questions they beat 3 times in a row are retired.
+      Daily missions automatically focus on their two weakest skills, and Auto-Coach writes brand-new questions aimed at their
+      mistakes as they progress — so the app keeps up with them all summer.
     </div>
   </div>
 </div>
@@ -1505,7 +1505,7 @@ function renderScreen(){
    :`${pend?'<div style="font-size:12px;font-weight:900;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">🎁 Reward requests — needs your decision</div>'+pend:''}
      <div style="font-size:13px;line-height:1.7">
       Bank balance: <b style="color:var(--green);font-size:17px">${sc.bank} min</b> of Owl-minutes
-      <span style="color:var(--ink-dim)">· earned by completing the first mission each day (base ${sc.base} + accuracy bonus + ${sc.sb} streak bonus, max ${sc.cap}/day). ${S.name} chooses his own rewards in the shop; approving an item here is your cue to grant the time / buy the voucher / make the transfer.</span></div>
+      <span style="color:var(--ink-dim)">· earned by completing the first mission each day (base ${sc.base} + accuracy bonus + ${sc.sb} streak bonus, max ${sc.cap}/day). ${S.name} chooses their own rewards in the shop; approving an item here is your cue to grant the time / buy the voucher / make the transfer.</span></div>
      <div style="margin-top:10px;font-size:11px;font-weight:900;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.5px">Reward shop prices</div>
      ${shopSet}
      <div class="spend-row">

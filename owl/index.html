@@ -869,6 +869,7 @@ function finishQuiz(aborted){
     checkBadges();
   }
   save();
+  if(QUIZ.mission&&!aborted){syncSnapshot();syncPing();}
   if(aborted){goHome();return;}
   $('resScore').textContent=QUIZ.correct+'/'+QUIZ.qs.length;
   $('resXP').textContent='+'+QUIZ.xp;
@@ -1003,6 +1004,36 @@ function resetData(){
   if(confirm('Really delete ALL of '+S.name+'\'s progress? This cannot be undone.')&&confirm('Are you absolutely sure?')){
     localStorage.removeItem(KEY);location.reload();
   }
+}
+
+/* =====================================================================
+   PROGRESS SYNC — posts a daily snapshot to track.php (same folder) so the
+   server can email the Grown-Ups a daily report. Silently does nothing when
+   the app is opened from a host without PHP (file://, GitHub Pages, local).
+   ===================================================================== */
+const SYNC_TOKEN='owl-1515-hoot';
+function syncSnapshot(){
+  try{
+    if(location.protocol==='file:')return;
+    const t=today();
+    const todayLogs=S.log.filter(l=>l.t===t);
+    const earnedEntry=S.screen.log.find(l=>l.t===t&&l.mins);
+    const snapshot={
+      d:t,name:S.name,missions:S.missions,streak:S.streak,xp:S.xp,
+      bank:S.screen.bank,earned:earnedEntry?earnedEntry.mins:0,
+      today:{done:todayLogs.length>0,
+             correct:todayLogs.reduce((a,l)=>a+l.correct,0),
+             total:todayLogs.reduce((a,l)=>a+l.total,0)},
+      ratings:Object.fromEntries(STRANDS.map(s=>[s.name,S.skills[s.id].rating])),
+      slips:S.slips.slice(0,5).map(x=>({s:x.skill,q:String(x.q).slice(0,90),g:String(x.given).slice(0,30),a:String(x.ans).slice(0,30)})),
+      coach:S.coach.added
+    };
+    fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({token:SYNC_TOKEN,snapshot})}).catch(()=>{});
+  }catch(e){}
+}
+function syncPing(){
+  try{if(location.protocol!=='file:')fetch('track.php?ping=1&token='+SYNC_TOKEN).catch(()=>{});}catch(e){}
 }
 
 /* =====================================================================
@@ -1272,6 +1303,7 @@ function changeParentPin(){
   }
   renderHome();
   setTimeout(()=>{if(coachNeeded())coachRefresh(false);},2500);
+  setTimeout(()=>{syncSnapshot();syncPing();},4000);
 })();
 </script>
 </body>

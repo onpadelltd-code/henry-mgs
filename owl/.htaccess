@@ -1,0 +1,4 @@
+# Owl Academy data files are only accessible through track.php
+<FilesMatch "\.json$">
+  Require all denied
+</FilesMatch>

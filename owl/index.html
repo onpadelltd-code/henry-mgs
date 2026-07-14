@@ -403,7 +403,45 @@ if(!S.extra)S.extra={spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]};
 if(!S.mastered)S.mastered={};
 if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
 if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
-function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+function save(){S._ts=Date.now();localStorage.setItem(KEY,JSON.stringify(S));pushState();}
+
+/* ---------- cross-device sync (iPad <-> fridge <-> phones) ---------- */
+let _pushT=null;
+function pushState(){
+  if(location.protocol==='file:')return;
+  clearTimeout(_pushT);
+  _pushT=setTimeout(()=>{
+    try{
+      const st=JSON.parse(JSON.stringify(S));
+      if(st.coach)st.coach.apiKey='';                      // key never leaves the device
+      fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
+        body:JSON.stringify({token:'owl-1515-hoot',state:st})}).catch(()=>{});
+    }catch(e){}
+  },4000);
+}
+async function pullState(){
+  if(location.protocol==='file:'||QUIZ)return;             // never adopt mid-quiz
+  try{
+    const res=await fetch('track.php?state=1&token=owl-1515-hoot',{cache:'no-store'});
+    if(!res.ok)return;
+    const srv=await res.json();
+    if(!srv||!srv.skills)return;
+    // adopt only clearly-newer progress: higher XP wins; equal XP falls back to timestamp
+    const ahead=(srv.xp||0)>(S.xp||0)||((srv.xp||0)===(S.xp||0)&&(srv._ts||0)>(S._ts||0));
+    if(!ahead)return;
+    const localKey=(S.coach&&S.coach.apiKey)||'';
+    S=srv;
+    for(const st of STRANDS)if(!S.skills[st.id])S.skills[st.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
+    if(!S.extra)S.extra={spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]};
+    if(!S.mastered)S.mastered={};
+    if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
+    if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
+    if(localKey)S.coach.apiKey=localKey;
+    localStorage.setItem(KEY,JSON.stringify(S));            // direct write: no push-back loop
+    if(!$('view-home').classList.contains('hidden'))renderHome();
+    toast('🦉 Progress synced');
+  }catch(e){}
+}
 
 /* ---------- Elo engine ---------- */
 const TARGET_GAP=164;          // rating gap giving ~72% expected success
@@ -1308,6 +1346,8 @@ function changeParentPin(){
     if(gap>2){S.streak=0;save();}
   }
   renderHome();
+  pullState();                              // adopt newer progress from another device
+  setInterval(pullState,300000);            // fridge/scoreboard mode: refresh every 5 min
   setTimeout(()=>{if(coachNeeded())coachRefresh(false);},2500);
   setTimeout(()=>{syncSnapshot();syncPing();},4000);
 })();

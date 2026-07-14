@@ -21,12 +21,22 @@ $today = date('Y-m-d');
 $db = load_db($DATA);
 if(!is_array($db)) $db = ['days'=>[], 'lastEmail'=>''];
 
-/* ---------- POST: store snapshot ---------- */
+/* ---------- POST: store snapshot or full synced state ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $raw = file_get_contents('php://input');
-  if (strlen($raw) > 30000) { http_response_code(413); exit('too big'); }
+  if (strlen($raw) > 400000) { http_response_code(413); exit('too big'); }
   $body = json_decode($raw, true);
   if (!$body || ($body['token'] ?? '') !== $TOKEN) { http_response_code(403); exit('no'); }
+
+  // full app-state sync (cross-device: iPad <-> fridge <-> phones)
+  if (isset($body['state'])) {
+    $state = $body['state'];
+    if (!is_array($state) || !isset($state['skills'])) { http_response_code(400); exit('bad'); }
+    if (isset($state['coach'])) $state['coach']['apiKey'] = ''; // never store the API key server-side
+    file_put_contents(__DIR__ . '/owl-state.json', json_encode($state), LOCK_EX);
+    exit('ok');
+  }
+
   $snap = $body['snapshot'] ?? null;
   if (!is_array($snap)) { http_response_code(400); exit('bad'); }
   $snap['at'] = date('H:i');
@@ -35,6 +45,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (count($db['days']) > 60) $db['days'] = array_slice($db['days'], -60, null, true);
   store_db($DATA, $db);
   exit('ok');
+}
+
+/* ---------- GET ?state=1 : serve the synced state ---------- */
+if (isset($_GET['state'])) {
+  if (($_GET['token'] ?? '') !== $TOKEN) { http_response_code(403); exit('no'); }
+  header('Content-Type: application/json; charset=utf-8');
+  header('Cache-Control: no-store');
+  $f = __DIR__ . '/owl-state.json';
+  echo file_exists($f) ? file_get_contents($f) : '{}';
+  exit;
 }
 
 /* ---------- GET: maybe send the daily report ---------- */

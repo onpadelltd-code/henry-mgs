@@ -182,7 +182,8 @@ td .spark{vertical-align:middle}
 .st-set input{width:100%;background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:7px;color:var(--ink);font-weight:800;font-size:14px;text-align:center}
 
 /* ---------- family PIN gate ---------- */
-#pinGate{position:fixed;inset:0;z-index:200;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;padding:20px}
+#pinGate,#ppinGate{position:fixed;inset:0;z-index:200;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;padding:20px}
+#ppinGate{background:#081430f2;backdrop-filter:blur(6px)}
 .pin-card{background:var(--panel);border:1px solid var(--gold-dim);border-radius:22px;padding:34px 28px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 40px #ffc84518}
 .pin-card .owl{font-size:56px;display:block;margin-bottom:8px}
 .pin-card h2{font-family:'Bungee';color:var(--gold);font-size:20px;margin-bottom:4px}
@@ -206,6 +207,17 @@ td .spark{vertical-align:middle}
     <p>Enter the family PIN to open Owl Academy</p>
     <input id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
     <button onclick="tryPin()">UNLOCK</button>
+  </div>
+</div>
+
+<div id="ppinGate" style="display:none">
+  <div class="pin-card" id="ppinCard">
+    <span class="owl">🔐</span>
+    <h2>GROWN-UPS ONLY</h2>
+    <p>This area controls rewards and settings — parent PIN required</p>
+    <input id="ppinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••">
+    <button onclick="tryPpin()">UNLOCK</button>
+    <button style="background:none;box-shadow:none;color:var(--ink-dim);font-size:12px;padding:8px" onclick="closePpin()">← back to HQ</button>
   </div>
 </div>
 
@@ -314,6 +326,7 @@ td .spark{vertical-align:middle}
     <div class="tool-row">
       <button onclick="exportData()">⬇ Export progress</button>
       <button onclick="importData()">⬆ Import</button>
+      <button onclick="changeParentPin()">🔐 Change parent PIN</button>
       <button class="danger" onclick="resetData()">Reset all data</button>
     </div>
     <div class="parent-note" style="margin-top:10px">
@@ -1180,6 +1193,11 @@ function renderCoach(){
 
 /* ---------- view router ---------- */
 function showView(v){
+  if(v==='parent'&&!parentOk()){
+    $('ppinGate').style.display='flex';
+    setTimeout(()=>$('ppinInput').focus(),100);
+    return;
+  }
   for(const x of ['home','practice','quiz','results','parent']){
     $('view-'+x).classList.toggle('hidden',x!==v);
     const nb=$('nav-'+x);if(nb)nb.classList.toggle('on',x===v);
@@ -1210,8 +1228,38 @@ function tryPin(){
   }
 }
 
+/* =====================================================================
+   PARENT LOCK — separate PIN for the Grown-Ups tab (rewards, settings,
+   API key, reset). Re-asked after 15 minutes. Changeable in the panel.
+   ===================================================================== */
+const PPIN_SALT='mgs-parent-';
+function ppinHash(s){s=PPIN_SALT+s;let h=5381;for(let i=0;i<s.length;i++){h=(((h<<5)+h)+s.charCodeAt(i))>>>0;}return h;}
+const PPIN_DEFAULT_HASH=1396457829; // default parent PIN (changeable in the panel)
+function parentOk(){return Date.now()-(+sessionStorage.getItem('owl.ppinOk')||0)<15*60000;}
+function currentPpinHash(){return S.ppinHash||PPIN_DEFAULT_HASH;}
+function tryPpin(){
+  const inp=$('ppinInput');
+  if(ppinHash(inp.value.trim())===currentPpinHash()){
+    sessionStorage.setItem('owl.ppinOk',String(Date.now()));
+    inp.value='';$('ppinGate').style.display='none';
+    showView('parent');
+  }else{
+    const c=$('ppinCard');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
+    inp.value='';inp.focus();
+  }
+}
+function closePpin(){$('ppinInput').value='';$('ppinGate').style.display='none';showView('home');}
+function changeParentPin(){
+  const v=prompt('New parent PIN (4 digits):');
+  if(v===null)return;
+  if(!/^\d{4}$/.test(v.trim())){alert('PIN must be exactly 4 digits.');return;}
+  S.ppinHash=ppinHash(v.trim());save();
+  toast('🔐 Parent PIN updated');
+}
+
 /* streak decay check + silent auto-coach on load */
 (function(){
+  $('ppinInput').addEventListener('keydown',e=>{if(e.key==='Enter')tryPpin();});
   if(pinUnlocked()){const g=$('pinGate');if(g)g.remove();}
   else{
     const inp=$('pinInput');

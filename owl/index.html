@@ -459,7 +459,7 @@ const CHILD_SEX='m'; // 'm' or 'f' — default for this instance, changeable in 
 function freshState(){
   const skills={};
   for(const s of STRANDS)skills[s.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
-  return {name:'Henry',sex:CHILD_SEX,about:'',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],
+  return {name:'Henry',sex:CHILD_SEX,about:'',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],dayXp:{},
     extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
     coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0},
     screen:{on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]},
@@ -480,6 +480,12 @@ for(const st of STRANDS)if(!S.skills[st.id])S.skills[st.id]={rating:1050,attempt
 if(!S.extra)S.extra={spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]};
 if(!S.mastered)S.mastered={};
 if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
+if(!S.dayXp){
+  S.dayXp={};let logged=0;
+  for(const l of S.log){S.dayXp[l.t]=(S.dayXp[l.t]||0)+(l.xp||0);logged+=(l.xp||0);}
+  const orphan=Math.max(0,(S.xp||0)-logged);
+  if(orphan){const t=new Date().toISOString().slice(0,10);S.dayXp[t]=(S.dayXp[t]||0)+orphan;}
+}
 if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
 if(!S.shop)S.shop=defaultShop();
 if(S.about===undefined)S.about='';
@@ -531,6 +537,7 @@ async function pullState(){
 if(!S.shop)S.shop=defaultShop();
     if(S.about===undefined)S.about='';
     if(S.sex===undefined)S.sex=CHILD_SEX;
+    if(!S.dayXp){S.dayXp={};for(const l of S.log)S.dayXp[l.t]=(S.dayXp[l.t]||0)+(l.xp||0);}
     if(localKey)S.coach.apiKey=localKey;
     localStorage.setItem(KEY,JSON.stringify(S));            // direct write: no push-back loop
     if(!$('view-home').classList.contains('hidden'))renderHome();
@@ -983,6 +990,11 @@ function submitAnswer(given,btn){
     if(!second)QUIZ.correct++;
   }
   QUIZ.xp+=gained;S.xp+=gained;
+  if(gained){
+    const dt=today();S.dayXp[dt]=(S.dayXp[dt]||0)+gained;
+    const cut=new Date(Date.now()-14*864e5).toISOString().slice(0,10);
+    for(const k in S.dayXp)if(k<cut)delete S.dayXp[k];
+  }
   if(gained)toast('+'+gained+' XP'+(second?' 💪':q.boss?' 👑':(q.sprint&&timerLeft>=5)?' ⚡':''));
   save();
   // UI feedback
@@ -1390,7 +1402,7 @@ const LEAGUE_URL='/owl-league/league.php';
 const LEAGUE_TOKEN='owl-league-9k4t';
 function weekXp(){
   const cutoff=new Date(Date.now()-7*864e5).toISOString().slice(0,10);
-  return S.log.filter(l=>l.t>=cutoff).reduce((a,l)=>a+(l.xp||0),0);
+  return Object.entries(S.dayXp||{}).filter(([d])=>d>=cutoff).reduce((a,[,x])=>a+x,0);
 }
 function pushLeague(){
   if(location.protocol==='file:')return;

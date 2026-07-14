@@ -197,6 +197,14 @@ td .spark{vertical-align:middle}
 .pend-ok{background:var(--green);color:#04160b}
 .pend-no{background:#3a1622;color:var(--coral);border:1px solid var(--coral)!important}
 
+/* ---------- owl league ---------- */
+.lg-row{display:flex;align-items:center;gap:10px;background:#0a1a3a;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:6px 0;font-weight:800;font-size:14px}
+.lg-row.me{border-color:var(--gold);background:#1c2038;box-shadow:0 0 12px #ffc84522}
+.lg-row .medal{font-size:20px;width:28px;text-align:center}
+.lg-row .nm{flex:1}
+.lg-row .wk{color:var(--cyan);font-family:'Bungee';font-size:15px}
+.lg-row .st{font-size:12px;color:var(--ink-dim)}
+
 /* ---------- family PIN gate ---------- */
 #pinGate,#ppinGate{position:fixed;inset:0;z-index:200;background:var(--navy-deep);display:flex;align-items:center;justify-content:center;padding:20px}
 #ppinGate{background:#081430f2;backdrop-filter:blur(6px)}
@@ -265,6 +273,11 @@ td .spark{vertical-align:middle}
       <div class="big" id="screenBank">0 min</div>
       <div class="lbl" id="screenHint">Owl-minutes earned — complete today's mission to earn more!</div>
     </div>
+  </div>
+
+  <div class="card" id="leagueCard" style="display:none">
+    <div class="sec-title" style="margin:0 0 10px">🏆 Owl League — this week</div>
+    <div id="leagueRows"></div>
   </div>
 
   <div class="card" id="shopCard" style="display:none">
@@ -448,6 +461,7 @@ function pushState(){
       if(st.coach)st.coach.apiKey='';                      // key never leaves the device
       fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
         body:JSON.stringify({token:'owl-1515-hoot',state:st})}).catch(()=>{});
+      pushLeague();
     }catch(e){}
   },4000);
 }
@@ -1253,6 +1267,40 @@ function coachMerge(d){
     {sOd.add(norm(it.answer));push('odd',[it.options,it.answer,it.why||'',clampD(it.diff)]);}
   return added;
 }
+/* ---------- owl league (shared leaderboard across pilot children) ---------- */
+const LEAGUE_ID='henry';
+const LEAGUE_URL='/owl-league/league.php';
+const LEAGUE_TOKEN='owl-league-9k4t';
+function weekXp(){
+  const cutoff=new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+  return S.log.filter(l=>l.t>=cutoff).reduce((a,l)=>a+(l.xp||0),0);
+}
+function pushLeague(){
+  if(location.protocol==='file:')return;
+  try{
+    fetch(LEAGUE_URL,{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({token:LEAGUE_TOKEN,child:{id:LEAGUE_ID,name:S.name,xp:S.xp,week:weekXp(),streak:S.streak,missions:S.missions}})}).catch(()=>{});
+  }catch(e){}
+}
+async function renderLeague(){
+  const card=$('leagueCard');if(!card||location.protocol==='file:')return;
+  try{
+    const res=await fetch(LEAGUE_URL+'?board=1&token='+LEAGUE_TOKEN,{cache:'no-store'});
+    if(!res.ok)return;
+    const rows=await res.json();
+    if(!Array.isArray(rows)||rows.length<2){card.style.display='none';return;} // no lonely leaderboards
+    const medals=['🥇','🥈','🥉'];
+    card.style.display='block';
+    $('leagueRows').innerHTML=rows.slice(0,8).map((r,i)=>`
+      <div class="lg-row${r.id===LEAGUE_ID?' me':''}">
+        <span class="medal">${medals[i]||(i+1)}</span>
+        <span class="nm">${r.name}${r.id===LEAGUE_ID?' <span style="color:var(--gold)">(you!)</span>':''}</span>
+        <span class="st">${r.streak>0?r.streak+'🔥':''}</span>
+        <span class="wk">${r.week} XP</span>
+      </div>`).join('');
+  }catch(e){}
+}
+
 /* ---------- reward shop (child chooses, grown-up approves) ---------- */
 function renderShop(){
   const card=$('shopCard');if(!card)return;
@@ -1300,6 +1348,19 @@ function setShopItem(id,field,val){
   if(field==='on')item.on=!!val;
   save();
 }
+function addShopItem(){
+  const name=prompt('Reward name (e.g. "Trip to the cinema"):');
+  if(!name||!name.trim())return;
+  const cost=prompt('Price in Owl-minutes:');
+  const c=Math.max(1,Math.round(+cost||0));
+  if(!c){alert('Price must be a number of minutes.');return;}
+  S.shop.items.push({id:'c'+Date.now(),icon:'🎁',name:name.trim().slice(0,40),cost:c,on:true,custom:true});
+  save();renderScreen();toast('🎁 Reward added');
+}
+function removeShopItem(id){
+  S.shop.items=S.shop.items.filter(i=>i.id!==id);
+  save();renderScreen();
+}
 
 /* ---------- screen-time rewards (parent controls) ---------- */
 function screenSpend(mins){
@@ -1335,7 +1396,9 @@ function renderScreen(){
     <input type="checkbox" ${i.on?'checked':''} onchange="setShopItem('${i.id}','on',this.checked)">
     <span style="flex:1">${i.icon} ${i.name}</span>
     <input type="number" value="${i.cost}" style="width:64px;background:#0a1a3a;border:1px solid var(--line);border-radius:8px;padding:5px;color:var(--ink);font-weight:800;text-align:center" onchange="setShopItem('${i.id}','cost',this.value)">
-    <span style="color:var(--ink-dim);font-size:11px">min</span></div>`).join('');
+    <span style="color:var(--ink-dim);font-size:11px">min</span>
+    ${i.custom?`<button style="background:none;border:none;color:var(--coral);font-weight:900;cursor:pointer;font-size:14px" title="Remove reward" onclick="removeShopItem('${i.id}')">✕</button>`:''}</div>`).join('')
+    +`<button style="margin-top:6px;background:#0a1a3a;border:1px dashed var(--line);color:var(--ink-dim);border-radius:10px;padding:8px 14px;font-weight:800;font-size:12px;cursor:pointer" onclick="addShopItem()">＋ Add your own reward</button>`;
   box.innerHTML=!sc.on
    ?`<div style="font-size:13px;color:var(--ink-dim)">Screen-time rewards are <b>off</b>.</div>
      <div class="tool-row"><button onclick="toggleScreen()">Turn on</button></div>`
@@ -1472,7 +1535,9 @@ function changeParentPin(){
   }
   renderHome();
   pullState();                              // adopt newer progress from another device
+  pushLeague();renderLeague();              // owl league: report in + show the board
   setInterval(pullState,300000);            // fridge/scoreboard mode: refresh every 5 min
+  setInterval(renderLeague,300000);
   setTimeout(()=>{if(coachNeeded())coachRefresh(false);},2500);
   setTimeout(()=>{syncSnapshot();syncPing();},4000);
 })();

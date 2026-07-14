@@ -114,9 +114,11 @@ nav button:active{transform:scale(.93)}
 @keyframes pop{from{transform:scale(.9);opacity:0}}
 .feedback.ok{display:block;background:#12321f;border:1px solid var(--green)}
 .feedback.no{display:block;background:#3a1622;border:1px solid var(--coral)}
+.feedback.retry{display:block;background:#33270e;border:1px solid var(--gold-dim)}
 .feedback .fb-head{font-family:'Bungee';font-size:15px;margin-bottom:4px}
 .feedback.ok .fb-head{color:var(--green)}
 .feedback.no .fb-head{color:var(--coral)}
+.feedback.retry .fb-head{color:var(--gold)}
 .feedback .explain{color:var(--ink-dim);font-size:14px;line-height:1.5}
 .next-btn{margin-top:14px;width:100%;font-family:'Bungee';font-size:16px;background:var(--panel-hi);color:var(--ink);border:2px solid var(--line);border-radius:14px;padding:13px;cursor:pointer;display:none}
 .next-btn.show{display:block}
@@ -830,53 +832,81 @@ function renderQuestion(){
 }
 function submitTyped(){const v=$('qInput').value;if(v.trim()==='')return;submitAnswer(v,null);}
 
+/* second-chance helpers: hint shows the method with the answer blanked out */
+function maskAnswer(txt,ans){
+  try{
+    const t=String(txt||''),a=String(ans||'').trim();
+    if(!a)return t;
+    const esc=a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    return t.replace(new RegExp('(^|[^\\w])'+esc+'(?=[^\\w]|$)','gi'),'$1<b style="color:var(--gold)">___</b>');
+  }catch(e){return 'Think it through step by step…';}
+}
+function canRetry(q){return q.type==='text'||(q.choices&&q.choices.length>=3);}
+
 function submitAnswer(given,btn){
   if(answered)return;answered=true;stopTimer();
   const q=QUIZ.qs[QUIZ.i];
   const ok=norm(given)===norm(q.answer);
+  const second=!!q._second;
   blip(ok);
-  // mastery tracking: 3 correct in a row retires a bank item (dataset self-prunes)
-  if(q.bankId){
-    const m=S.mastered[q.bankId]||(S.mastered[q.bankId]={streak:0,seen:0});
-    m.seen++;m.streak=ok?m.streak+1:0;
-  }
-  // Elo update
-  const delta=applyResult(q.skill,q.d,ok);
-  QUIZ.deltas[q.skill]=(QUIZ.deltas[q.skill]||0)+delta;
-  // XP
-  let gained=0;
-  if(ok){gained=q.boss?25:10;if(q.sprint&&timerLeft>=5)gained+=5;QUIZ.correct++;}
-  QUIZ.xp+=gained;S.xp+=gained;
-  if(gained)toast('+'+gained+' XP'+(q.boss?' 👑':q.sprint&&timerLeft>=5?' ⚡':''));
-  // fix-it queue
-  if(!ok){
-    S.slips.unshift({skill:q.skill,q:q.q.replace(/<[^>]+>/g,''),given:String(given),ans:String(q.answer),t:Date.now()});
-    if(S.slips.length>60)S.slips.pop();
-    if(!q.review){
-      S.fixit.push({q:{type:q.type,q:q.q,choices:q.choices?shuffle(q.choices):undefined,answer:q.answer,explain:q.explain,d:q.d,skill:q.skill},due:Date.now()+864e5,stage:0});
-      if(S.fixit.length>40)S.fixit.shift();
+  // FIRST attempt locks in all learning signals (Elo, mastery, slips, fix-it) —
+  // a second-chance recovery never changes ratings, accuracy or rewards.
+  if(!second){
+    if(q.bankId){
+      const m=S.mastered[q.bankId]||(S.mastered[q.bankId]={streak:0,seen:0});
+      m.seen++;m.streak=ok?m.streak+1:0;
+    }
+    const delta=applyResult(q.skill,q.d,ok);
+    QUIZ.deltas[q.skill]=(QUIZ.deltas[q.skill]||0)+delta;
+    if(!ok){
+      S.slips.unshift({skill:q.skill,q:q.q.replace(/<[^>]+>/g,''),given:String(given),ans:String(q.answer),t:Date.now()});
+      if(S.slips.length>60)S.slips.pop();
+      if(!q.review){
+        S.fixit.push({q:{type:q.type,q:q.q,choices:q.choices?shuffle(q.choices):undefined,answer:q.answer,explain:q.explain,d:q.d,skill:q.skill},due:Date.now()+864e5,stage:0});
+        if(S.fixit.length>40)S.fixit.shift();
+      }
+    }
+    if(q.review&&q.fixRef){ // spaced repetition scheduling: 1d -> 3d -> 7d -> retire
+      const f=q.fixRef;
+      if(ok){f.stage=(f.stage||0)+1;if(f.stage>=3){S.fixit=S.fixit.filter(x=>x!==f);}else{f.due=Date.now()+[3,7][f.stage-1]*864e5;}}
+      else f.due=Date.now()+864e5;
     }
   }
-  if(q.review&&q.fixRef){ // spaced repetition scheduling: 1d -> 3d -> 7d -> retire
-    const f=q.fixRef;
-    if(ok){f.stage=(f.stage||0)+1;if(f.stage>=3){S.fixit=S.fixit.filter(x=>x!==f);}else{f.due=Date.now()+[3,7][f.stage-1]*864e5;}}
-    else f.due=Date.now()+864e5;
+  // wrong first attempt on a retryable question → method hint + one more go (answer stays hidden)
+  if(!ok&&!second&&!q.review&&canRetry(q)){
+    q._second=true;save();
+    answered=false;
+    if(btn){btn.disabled=true;btn.classList.add('wrong');}
+    else{const i=$('qInput');if(i){i.disabled=false;i.value='';setTimeout(()=>i.focus(),50);}}
+    const fb=$('qFeedback');
+    fb.className='feedback retry';
+    fb.innerHTML=`<div class="fb-head">💡 NOT YET — HAVE ANOTHER GO!</div><div class="explain">${maskAnswer(q.explain,q.answer)}</div>`;
+    return;
   }
+  // XP: full credit first time; a recovery earns a token +5 (no accuracy/reward credit)
+  let gained=0;
+  if(ok){
+    gained=second?5:(q.boss?25:10)+(q.sprint&&!second&&timerLeft>=5?5:0);
+    if(!second)QUIZ.correct++;
+  }
+  QUIZ.xp+=gained;S.xp+=gained;
+  if(gained)toast('+'+gained+' XP'+(second?' 💪':q.boss?' 👑':(q.sprint&&timerLeft>=5)?' ⚡':''));
   save();
   // UI feedback
   if(btn){
     document.querySelectorAll('.choice').forEach(b=>{
       b.disabled=true;
-      if(norm(b.innerHTML)===norm(q.answer)||norm(b.textContent)===norm(q.answer))b.classList.add(btn===b&&!ok?'':'reveal');
+      if(norm(b.textContent)===norm(q.answer))b.classList.add('reveal');
     });
     btn.classList.add(ok?'correct':'wrong');
   }else if($('qInput')){$('qInput').disabled=true;}
   const fb=$('qFeedback');
   fb.className='feedback '+(ok?'ok':'no');
-  fb.innerHTML=`<div class="fb-head">${ok?pick(['✔ CORRECT!','✔ NAILED IT!','✔ BRILLIANT!','✔ OWL-STANDING!']):'✖ NOT QUITE'}</div><div class="explain">${ok?q.explain:'The answer is <b style="color:var(--green)">'+q.answer+'</b>. '+q.explain+'<br>🔁 This one will come back tomorrow — you\'ll smash it!'}</div>`;
+  fb.innerHTML=ok
+    ?`<div class="fb-head">${second?'✔ GOT IT ON THE SECOND GO! 💪':pick(['✔ CORRECT!','✔ NAILED IT!','✔ BRILLIANT!','✔ OWL-STANDING!'])}</div><div class="explain">${q.explain}</div>`
+    :`<div class="fb-head">✖ NOT QUITE</div><div class="explain">The answer is <b style="color:var(--green)">${q.answer}</b>. ${q.explain}<br>🔁 This one will come back tomorrow — you'll smash it!</div>`;
   $('qNext').classList.add('show');
   $('qNext').textContent=QUIZ.i===QUIZ.qs.length-1?'FINISH ✦':'NEXT ▸';
-  if(ok&&q.type==='mc'&&btn)btn.classList.add('correct');
 }
 function nextQuestion(){
   QUIZ.i++;

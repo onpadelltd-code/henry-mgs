@@ -462,6 +462,7 @@ function rankOf(r){let out=RANKS[0];for(const k of RANKS)if(r>=k[0])out=k;return
 /* ---------- state ---------- */
 const KEY='owlAcademy.v1';
 const CHILD_SEX='m'; // 'm' or 'f' — default for this instance, changeable in Grown-Ups
+const APP_VERSION='dev'; // stamped at deploy time
 function freshState(){
   const skills={};
   for(const s of STRANDS)skills[s.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
@@ -536,6 +537,34 @@ async function pullCoachKey(){
       if(cfg.ppinHash&&cfg.ppinHash!==S.ppinHash){S.ppinHash=cfg.ppinHash;save();}  // admin-set parent PIN wins everywhere
     }
   }catch(e){}
+}
+function deviceLabel(){
+  const u=navigator.userAgent;
+  const dev=/iPad/.test(u)?'iPad':/iPhone/.test(u)?'iPhone':/Android/.test(u)?'Android':/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'Windows':/Tizen|SMART-TV|SmartTV/i.test(u)?'Smart TV':'Other';
+  const br=/CriOS|Chrome/.test(u)?'Chrome':/Safari/.test(u)?'Safari':/Firefox/.test(u)?'Firefox':'browser';
+  return dev+' · '+br;
+}
+function deviceId(){
+  let id=localStorage.getItem('owl.deviceId');
+  if(!id){id='d'+Math.random().toString(36).slice(2,10);localStorage.setItem('owl.deviceId',id);}
+  return id;
+}
+function heartbeat(){
+  if(location.protocol==='file:')return;
+  try{
+    fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({token:'owl-1515-hoot',device:{id:deviceId(),label:deviceLabel(),v:APP_VERSION}})}).catch(()=>{});
+  }catch(e){}
+}
+async function checkAppVersion(){
+  if(location.protocol==='file:')return false;
+  try{
+    const r=await fetch('track.php?ver=1&token=owl-1515-hoot',{cache:'no-store'});
+    if(!r.ok)return false;
+    const j=await r.json();
+    if(j.v&&j.v!==APP_VERSION&&!QUIZ){location.reload();return true;}
+  }catch(e){}
+  return false;
 }
 async function applyServerActions(){
   if(location.protocol==='file:')return;
@@ -1767,11 +1796,14 @@ function changeParentPin(){
   }
   renderHome();
   initYearGate();                           // first run: ask which school year
-  pullState();                              // adopt newer progress from another device
+  (async()=>{await pullState();await applyServerActions();})();  // adopt state FIRST, then apply email decisions
   pushLeague();renderLeague();              // owl league: report in + show the board
-  applyServerActions();                     // apply any approve/deny made from email
   setInterval(applyServerActions,300000);
   setInterval(pullState,300000);            // fridge/scoreboard mode: refresh every 5 min
+  const BOOT_DAY=today();                   // long-lived tabs reload daily to pick up app updates
+  setInterval(()=>{if(today()!==BOOT_DAY&&!QUIZ)location.reload();},600000);
+  heartbeat();setInterval(heartbeat,3600000);           // device check-in: boot + hourly
+  setTimeout(checkAppVersion,8000);setInterval(checkAppVersion,600000);  // push updates: reload when a new version ships
   setInterval(renderLeague,300000);
   setTimeout(async()=>{await pullCoachKey();if(coachNeeded())coachRefresh(false);},2500);
   setTimeout(()=>{syncSnapshot();syncPing();},4000);

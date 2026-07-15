@@ -516,6 +516,13 @@ async function pullCoachKey(){
     const j=await r.json();
     if(j.key&&j.key!==S.coach.apiKey){S.coach.apiKey=j.key;save();if(typeof renderCoach==='function')renderCoach();}
   }catch(e){}
+  try{
+    const r2=await fetch('track.php?settings=1&token=owl-1515-hoot',{cache:'no-store'});
+    if(r2.ok){
+      const cfg=await r2.json();
+      if(cfg.ppinHash&&cfg.ppinHash!==S.ppinHash){S.ppinHash=cfg.ppinHash;save();}  // admin-set parent PIN wins everywhere
+    }
+  }catch(e){}
 }
 async function pullState(){
   if(location.protocol==='file:'||QUIZ)return;             // never adopt mid-quiz

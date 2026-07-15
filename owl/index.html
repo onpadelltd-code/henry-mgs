@@ -462,7 +462,7 @@ function freshState(){
   return {name:'Henry',sex:CHILD_SEX,about:'',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],dayXp:{},
     extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
     coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0},
-    screen:{on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]},
+    screen:{on:true,base:25,b90:25,b75:15,b60:10,sb:10,cap:60,bank:0,lastEarn:null,log:[]},
     shop:defaultShop()};
 }
 function defaultShop(){
@@ -487,7 +487,8 @@ if(!S.dayXp){
   const orphan=Math.max(0,(S.xp||0)-logged);
   if(orphan){const t=new Date().toISOString().slice(0,10);S.dayXp[t]=(S.dayXp[t]||0)+orphan;}
 }
-if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
+if(!S.screen)S.screen={on:true,base:25,b90:25,b75:15,b60:10,sb:10,cap:60,bank:0,lastEarn:null,log:[]};
+if(S.screen&&S.screen.base===15&&S.screen.b90===15&&S.screen.b75===10&&S.screen.b60===5&&S.screen.sb===5&&S.screen.cap===45){S.screen.base=25;S.screen.b90=25;S.screen.b75=15;S.screen.b60=10;S.screen.sb=10;S.screen.cap=60;}
 if(!S.shop)S.shop=defaultShop();
 if(!S.shop.items.some(i=>i.id==='xbox'))S.shop.items.splice(3,0,{id:'xbox',icon:'❎',name:'£5 Xbox voucher',cost:150,on:true});
 if(S.about===undefined)S.about='';
@@ -542,7 +543,8 @@ async function pullState(){
     if(!S.extra)S.extra={spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]};
     if(!S.mastered)S.mastered={};
     if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
-    if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
+    if(!S.screen)S.screen={on:true,base:25,b90:25,b75:15,b60:10,sb:10,cap:60,bank:0,lastEarn:null,log:[]};
+if(S.screen&&S.screen.base===15&&S.screen.b90===15&&S.screen.b75===10&&S.screen.b60===5&&S.screen.sb===5&&S.screen.cap===45){S.screen.base=25;S.screen.b90=25;S.screen.b75=15;S.screen.b60=10;S.screen.sb=10;S.screen.cap=60;}
 if(!S.shop)S.shop=defaultShop();
     if(!S.shop.items.some(i=>i.id==='xbox'))S.shop.items.splice(3,0,{id:'xbox',icon:'❎',name:'£5 Xbox voucher',cost:150,on:true});
     if(S.about===undefined)S.about='';

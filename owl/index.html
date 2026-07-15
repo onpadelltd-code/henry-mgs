@@ -469,6 +469,8 @@ function defaultShop(){
   return {items:[
     {id:'ipad', icon:'📱', name:'15 min iPad time',  cost:15,  on:true},
     {id:'ps5',  icon:'🎮', name:'15 min PS5 time',   cost:15,  on:true},
+    {id:'tv30', icon:'📺', name:'30 min TV time',    cost:30,  on:true},
+    {id:'tv60', icon:'📺', name:'1 hour TV time',    cost:60,  on:true},
     {id:'robux',icon:'💎', name:'£5 Robux voucher',  cost:150, on:true},
     {id:'xbox', icon:'❎', name:'£5 Xbox voucher',   cost:150, on:true},
     {id:'cash', icon:'💷', name:'£1 pocket money',   cost:30,  on:true},
@@ -491,6 +493,7 @@ if(!S.screen)S.screen={on:true,base:25,b90:25,b75:15,b60:10,sb:10,cap:60,bank:0,
 if(S.screen&&S.screen.base===15&&S.screen.b90===15&&S.screen.b75===10&&S.screen.b60===5&&S.screen.sb===5&&S.screen.cap===45){S.screen.base=25;S.screen.b90=25;S.screen.b75=15;S.screen.b60=10;S.screen.sb=10;S.screen.cap=60;}
 if(!S.shop)S.shop=defaultShop();
 if(!S.shop.items.some(i=>i.id==='xbox'))S.shop.items.splice(3,0,{id:'xbox',icon:'❎',name:'£5 Xbox voucher',cost:150,on:true});
+if(!S.shop.items.some(i=>i.id==='tv30'))S.shop.items.splice(2,0,{id:'tv30',icon:'📺',name:'30 min TV time',cost:30,on:true},{id:'tv60',icon:'📺',name:'1 hour TV time',cost:60,on:true});
 if(S.about===undefined)S.about='';
 if(S.sex===undefined)S.sex=CHILD_SEX;
 function pron(){return S.sex==='f'?{they:'she',their:'her',them:'her'}:{they:'he',their:'his',them:'him'};}
@@ -547,6 +550,7 @@ async function pullState(){
 if(S.screen&&S.screen.base===15&&S.screen.b90===15&&S.screen.b75===10&&S.screen.b60===5&&S.screen.sb===5&&S.screen.cap===45){S.screen.base=25;S.screen.b90=25;S.screen.b75=15;S.screen.b60=10;S.screen.sb=10;S.screen.cap=60;}
 if(!S.shop)S.shop=defaultShop();
     if(!S.shop.items.some(i=>i.id==='xbox'))S.shop.items.splice(3,0,{id:'xbox',icon:'❎',name:'£5 Xbox voucher',cost:150,on:true});
+if(!S.shop.items.some(i=>i.id==='tv30'))S.shop.items.splice(2,0,{id:'tv30',icon:'📺',name:'30 min TV time',cost:30,on:true},{id:'tv60',icon:'📺',name:'1 hour TV time',cost:60,on:true});
     if(S.about===undefined)S.about='';
     if(S.sex===undefined)S.sex=CHILD_SEX;
     if(!S.dayXp){S.dayXp={};for(const l of S.log)S.dayXp[l.t]=(S.dayXp[l.t]||0)+(l.xp||0);}

@@ -1515,6 +1515,11 @@ function redeemReward(id){
   S.screen.bank-=item.cost;
   S.shop.pending.push({ts:Date.now(),t:today(),id:item.id,name:item.name,cost:item.cost});
   save();renderHome();
+  syncSnapshot();
+  try{
+    if(location.protocol!=='file:')fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({token:'owl-1515-hoot',notify:{child:S.name,item:item.name,cost:item.cost,bank:S.screen.bank}})}).catch(()=>{});
+  }catch(e){}
   toast('🎁 Request sent to your grown-ups!');
 }
 function approveRedeem(ts){

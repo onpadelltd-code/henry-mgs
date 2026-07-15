@@ -470,6 +470,7 @@ function defaultShop(){
     {id:'ipad', icon:'📱', name:'15 min iPad time',  cost:15,  on:true},
     {id:'ps5',  icon:'🎮', name:'15 min PS5 time',   cost:15,  on:true},
     {id:'robux',icon:'💎', name:'£5 Robux voucher',  cost:150, on:true},
+    {id:'xbox', icon:'❎', name:'£5 Xbox voucher',   cost:150, on:true},
     {id:'cash', icon:'💷', name:'£1 pocket money',   cost:30,  on:true},
   ],pending:[]};
 }
@@ -488,6 +489,7 @@ if(!S.dayXp){
 }
 if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
 if(!S.shop)S.shop=defaultShop();
+if(!S.shop.items.some(i=>i.id==='xbox'))S.shop.items.splice(3,0,{id:'xbox',icon:'❎',name:'£5 Xbox voucher',cost:150,on:true});
 if(S.about===undefined)S.about='';
 if(S.sex===undefined)S.sex=CHILD_SEX;
 function pron(){return S.sex==='f'?{they:'she',their:'her',them:'her'}:{they:'he',their:'his',them:'him'};}
@@ -542,6 +544,7 @@ async function pullState(){
     if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
     if(!S.screen)S.screen={on:true,base:15,b90:15,b75:10,b60:5,sb:5,cap:45,bank:0,lastEarn:null,log:[]};
 if(!S.shop)S.shop=defaultShop();
+    if(!S.shop.items.some(i=>i.id==='xbox'))S.shop.items.splice(3,0,{id:'xbox',icon:'❎',name:'£5 Xbox voucher',cost:150,on:true});
     if(S.about===undefined)S.about='';
     if(S.sex===undefined)S.sex=CHILD_SEX;
     if(!S.dayXp){S.dayXp={};for(const l of S.log)S.dayXp[l.t]=(S.dayXp[l.t]||0)+(l.xp||0);}

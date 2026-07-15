@@ -90,6 +90,7 @@ nav button:active{transform:scale(.93)}
 .q-count{font-family:'Bungee';font-size:13px;color:var(--ink-dim)}
 .q-quit{background:none;border:1px solid var(--line);color:var(--ink-dim);border-radius:10px;padding:6px 10px;cursor:pointer;font-weight:800;font-size:12px}
 .q-tag{display:inline-flex;align-items:center;gap:6px;background:#0a1a3a;border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:800;color:var(--cyan);margin-bottom:12px}
+.q-tag.star{background:linear-gradient(90deg,#4a3a12,#33270e);border:1px solid var(--gold);color:var(--gold)}
 .q-tag.boss{color:var(--gold);border-color:var(--gold-dim);animation:pulse 1.2s infinite}
 @keyframes pulse{50%{box-shadow:0 0 14px #ffc84560}}
 .q-text{font-size:clamp(19px,4.5vw,24px);font-weight:800;line-height:1.45;margin-bottom:20px;min-height:60px}
@@ -280,6 +281,10 @@ td .spark{vertical-align:middle}
     <button class="big-btn" id="btnMission" onclick="startMission()">🚀 START MISSION</button>
   </div>
 
+  <div class="card" id="gauntletCard" style="display:none;padding:0;border:none;background:none">
+    <button class="big-btn" style="background:linear-gradient(180deg,#ff8a5c,#e5533d 60%,#c23a28);box-shadow:0 5px 0 #7e2517" onclick="startGauntlet()">🔥 THE DAILY GAUNTLET AWAITS<br><span style="font-size:11px;font-weight:700">one hard question · one shot · +50 XP & +5 min</span></button>
+  </div>
+
   <div class="card screen-card" id="screenCard" style="display:none">
     <span style="font-size:30px">🦉</span>
     <div>
@@ -343,6 +348,7 @@ td .spark{vertical-align:middle}
       <div class="res-cell"><div class="v g" id="resXP">+0</div><div class="l">xp earned</div></div>
       <div class="res-cell"><div class="v" id="resTime">0m</div><div class="l">time</div></div>
     </div>
+    <div id="resGauntlet"></div>
     <div id="resScreen"></div>
     <div class="sec-title" style="margin-top:4px">Power Changes</div>
     <div class="delta-list" id="resDeltas"></div>
@@ -459,7 +465,7 @@ const CHILD_SEX='m'; // 'm' or 'f' — default for this instance, changeable in 
 function freshState(){
   const skills={};
   for(const s of STRANDS)skills[s.id]={rating:1050,attempts:0,correct:0,recent:[],history:[],lastSeen:null};
-  return {name:'Henry',sex:CHILD_SEX,about:'',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],dayXp:{},
+  return {name:'Henry',sex:CHILD_SEX,about:'',xp:0,streak:0,year:null,lastMission:null,missions:0,minutes:0,skills,fixit:[],slips:[],badges:[],log:[],dayXp:{},gauntlet:{last:null,won:null},
     extra:{spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]},mastered:{},
     coach:{apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0},
     screen:{on:true,base:25,b90:25,b75:15,b60:10,sb:10,cap:60,bank:0,lastEarn:null,log:[]},
@@ -483,6 +489,7 @@ for(const st of STRANDS)if(!S.skills[st.id])S.skills[st.id]={rating:1050,attempt
 if(!S.extra)S.extra={spell:[],gram:[],syn:[],ant:[],fr:[],odd:[]};
 if(!S.mastered)S.mastered={};
 if(!S.coach)S.coach={apiKey:'',auto:true,lastRefresh:null,lastResult:'',added:0};
+if(!S.gauntlet)S.gauntlet={last:null,won:null};
 if(!S.dayXp){
   S.dayXp={};let logged=0;
   for(const l of S.log){S.dayXp[l.t]=(S.dayXp[l.t]||0)+(l.xp||0);logged+=(l.xp||0);}
@@ -554,6 +561,7 @@ if(!S.shop.items.some(i=>i.id==='tv30'))S.shop.items.splice(2,0,{id:'tv30',icon:
     if(S.about===undefined)S.about='';
     if(S.sex===undefined)S.sex=CHILD_SEX;
     if(!S.dayXp){S.dayXp={};for(const l of S.log)S.dayXp[l.t]=(S.dayXp[l.t]||0)+(l.xp||0);}
+    if(!S.gauntlet)S.gauntlet={last:null,won:null};
     if(localKey)S.coach.apiKey=localKey;
     localStorage.setItem(KEY,JSON.stringify(S));            // direct write: no push-back loop
     if(!$('view-home').classList.contains('hidden'))renderHome();
@@ -884,6 +892,10 @@ function buildMission(){
   for(const f of due){qs.push({...f.q,review:true,fixRef:f});}                         // spaced review
   while(qs.length<19)qs.push(makeFresh(pick(focus.concat(rotating)),seen));
   const bossSkill=pick(focus);const boss=makeFresh(bossSkill,seen,2);boss.boss=true;qs.push(boss); // boss
+  // star question: one 2x-XP question, always on the weakest skill
+  const weakest=weakestSkills(1)[0];
+  const starQ=qs.find(q=>q.skill===weakest&&!q.boss&&!q.review)||qs.find(q=>!q.boss&&!q.review&&!q.sprint);
+  if(starQ)starQ.star=true;
   return qs;
 }
 function startMission(){
@@ -893,6 +905,13 @@ function startMission(){
 function startPractice(skill){
   const qs=[],seen=new Set();for(let i=0;i<10;i++)qs.push(makeFresh(skill,seen));
   QUIZ={qs,i:0,correct:0,xp:0,started:Date.now(),deltas:{},mission:false,practiceSkill:skill};
+  showView('quiz');renderQuestion();
+}
+function startGauntlet(){
+  if(S.gauntlet.last===today())return;
+  const sk=pick(STRANDS.map(x=>x.id));
+  const q=makeQuestion(sk,3);q.gauntlet=true;   // pitched well above level, one shot
+  QUIZ={qs:[q],i:0,correct:0,xp:0,started:Date.now(),deltas:{},mission:false,gauntlet:true};
   showView('quiz');renderQuestion();
 }
 function quitQuiz(){if(confirm('Leave this mission? Progress on answered questions is saved.')){stopTimer();finishQuiz(true);}}
@@ -917,8 +936,8 @@ function renderQuestion(){
   $('qCount').textContent=(QUIZ.i+1)+'/'+QUIZ.qs.length;
   const strand=STRANDS.find(s=>s.id===q.skill);
   const tag=$('qTag');
-  tag.className='q-tag'+(q.boss?' boss':'');
-  tag.innerHTML=q.boss?'👑 BOSS QUESTION — double XP!':q.review?'🔁 Fix-it review — '+strand.icon+' '+strand.name:q.sprint?'⚡ Sprint! Answer fast for bonus XP':strand.icon+' '+strand.name;
+  tag.className='q-tag'+(q.gauntlet?' boss':q.boss?' boss':q.star?' star':'');
+  tag.innerHTML=q.gauntlet?'🔥 THE GAUNTLET — one shot: +50 XP & +5 min!':q.boss?'👑 BOSS QUESTION — double XP!':q.star?'⭐ STAR QUESTION — double XP! ('+strand.name+')':q.review?'🔁 Fix-it review — '+strand.icon+' '+strand.name:q.sprint?'⚡ Sprint! Answer fast for bonus XP':strand.icon+' '+strand.name;
   $('qText').innerHTML=q.q;
   $('qFeedback').className='feedback';$('qFeedback').innerHTML='';
   $('qNext').classList.remove('show');
@@ -965,6 +984,27 @@ function submitAnswer(given,btn){
   const ok=norm(given)===norm(q.answer);
   const second=!!q._second;
   blip(ok);
+  if(q.gauntlet){
+    S.gauntlet={last:today(),won:ok};
+    if(ok){
+      S.xp+=50;QUIZ.xp+=50;
+      const dt=today();S.dayXp[dt]=(S.dayXp[dt]||0)+50;
+      S.screen.bank+=5;   // excellence rides above the daily cap
+      S.screen.log.unshift({t:dt,gauntlet:true,mins:5});
+      if(S.screen.log.length>30)S.screen.log.pop();
+      toast('+50 XP & +5 min 🔥');
+    }
+    save();syncSnapshot();
+    if(btn){document.querySelectorAll('.choice').forEach(b=>{b.disabled=true;if(norm(b.textContent)===norm(q.answer))b.classList.add('reveal');});btn.classList.add(ok?'correct':'wrong');}
+    else if($('qInput')){$('qInput').disabled=true;}
+    const gfb=$('qFeedback');
+    gfb.className='feedback '+(ok?'ok':'no');
+    gfb.innerHTML=ok
+      ?`<div class="fb-head">🔥 GAUNTLET BEATEN! +50 XP & +5 MINUTES!</div><div class="explain">${q.explain}</div>`
+      :`<div class="fb-head">🔥 THE GAUNTLET WINS TODAY</div><div class="explain">The answer was <b style="color:var(--green)">${q.answer}</b>. ${q.explain}<br>No harm done — it returns tomorrow. Brave effort!</div>`;
+    $('qNext').classList.add('show');$('qNext').textContent='DONE ✦';
+    return;
+  }
   // FIRST attempt locks in all learning signals (Elo, mastery, slips, fix-it) —
   // a second-chance recovery never changes ratings, accuracy or rewards.
   if(!second){
@@ -1002,7 +1042,7 @@ function submitAnswer(given,btn){
   // XP: full credit first time; a recovery earns a token +5 (no accuracy/reward credit)
   let gained=0;
   if(ok){
-    gained=second?5:(q.boss?25:10)+(q.sprint&&!second&&timerLeft>=5?5:0);
+    gained=second?5:((q.boss?25:10)*(q.star?2:1))+(q.sprint&&!second&&timerLeft>=5?5:0);
     if(!second)QUIZ.correct++;
   }
   QUIZ.xp+=gained;S.xp+=gained;
@@ -1011,7 +1051,7 @@ function submitAnswer(given,btn){
     const cut=new Date(Date.now()-14*864e5).toISOString().slice(0,10);
     for(const k in S.dayXp)if(k<cut)delete S.dayXp[k];
   }
-  if(gained)toast('+'+gained+' XP'+(second?' 💪':q.boss?' 👑':(q.sprint&&timerLeft>=5)?' ⚡':''));
+  if(gained)toast('+'+gained+' XP'+(second?' 💪':q.boss?' 👑':q.star?' ⭐':(q.sprint&&timerLeft>=5)?' ⚡':''));
   save();
   // UI feedback
   if(btn){
@@ -1035,6 +1075,7 @@ function nextQuestion(){
   else renderQuestion();
 }
 function finishQuiz(aborted){
+  if(QUIZ&&QUIZ.gauntlet){QUIZ=null;showView('home');renderHome();return;}
   const mins=Math.max(1,Math.round((Date.now()-QUIZ.started)/60000));
   S.minutes+=mins;
   const done=QUIZ.i+ (aborted?0:0);
@@ -1069,6 +1110,8 @@ function finishQuiz(aborted){
   $('resScore').textContent=QUIZ.correct+'/'+QUIZ.qs.length;
   $('resXP').textContent='+'+QUIZ.xp;
   $('resTime').textContent=mins+'m';
+  $('resGauntlet').innerHTML=(QUIZ.mission&&!aborted&&S.gauntlet.last!==today())
+    ?`<button class="big-btn" style="background:linear-gradient(180deg,#ff8a5c,#e5533d 60%,#c23a28);box-shadow:0 5px 0 #7e2517;margin:4px 0 14px" onclick="startGauntlet()">🔥 TAKE ON THE DAILY GAUNTLET<br><span style="font-size:11px;font-weight:700">one hard question · one shot · +50 XP & +5 min</span></button>`:'';
   $('resScreen').innerHTML=QUIZ.screenEarned
     ?`<div class="screen-banner">🎮 <b>+${QUIZ.screenEarned} minutes</b> of iPad time earned!<br><span>Bank total: ${S.screen.bank} min — ask a grown-up to cash in</span></div>`
     :(QUIZ.mission&&S.screen.on&&S.screen.lastEarn===today()&&!QUIZ.screenEarned&&S.missions>1
@@ -1132,6 +1175,7 @@ function renderHome(){
   $('btnMission').textContent=doneToday?'💪 EXTRA MISSION':'🚀 START MISSION';
   const due=dueFixit().length;
   if(due&&!doneToday)$('launchSub').textContent=due+' fix-it question'+(due>1?'s':'')+' ready + new challenges';
+  $('gauntletCard').style.display=(doneToday&&S.gauntlet.last!==today())?'block':'none';
   // owl-minutes bank + reward shop
   const sc=$('screenCard');
   if(S.screen.on){
@@ -1223,6 +1267,7 @@ function syncSnapshot(){
       ratings:Object.fromEntries(STRANDS.map(s=>[s.name,S.skills[s.id].rating])),
       slips:S.slips.slice(0,5).map(x=>({s:x.skill,q:String(x.q).slice(0,90),g:String(x.given).slice(0,30),a:String(x.ans).slice(0,30)})),
       pending:S.shop.pending.map(p=>({n:p.name,c:p.cost})),
+      gauntlet:S.gauntlet.last===today()?(S.gauntlet.won?'won':'lost'):null,
       coach:S.coach.added
     };
     fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
@@ -1529,7 +1574,8 @@ function renderScreen(){
   const box=$('screenBox');if(!box)return;
   const sc=S.screen;
   const hist=sc.log.slice(0,7).map(l=>
-    l.spent   ?`<div class="slip-item">🕹️ ${l.t} — spent <b style="color:var(--cyan)">${l.spent} min</b></div>`
+    l.gauntlet?`<div class="slip-item">🔥 ${l.t} — Gauntlet beaten! <b style="color:var(--gold)">+5 min</b></div>`
+    :l.spent   ?`<div class="slip-item">🕹️ ${l.t} — spent <b style="color:var(--cyan)">${l.spent} min</b></div>`
     :l.redeem ?`<div class="slip-item">🎁 ${l.t} — <b style="color:var(--green)">${l.redeem}</b> approved (${l.mins} min)</div>`
     :l.denied ?`<div class="slip-item">↩ ${l.t} — ${l.denied} denied, ${l.mins} min refunded</div>`
     :`<div class="slip-item">✅ ${l.t} — earned <i>${l.mins} min</i> (${l.pct}% accuracy)</div>`).join('');

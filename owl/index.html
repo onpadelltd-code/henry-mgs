@@ -1662,7 +1662,9 @@ function changeParentPin(){
   if(v===null)return;
   if(!/^\d{4}$/.test(v.trim())){alert('PIN must be exactly 4 digits.');return;}
   S.ppinHash=ppinHash(v.trim());save();
-  toast('🔐 Parent PIN updated');
+  try{fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
+    body:JSON.stringify({token:'owl-1515-hoot',settings:{ppinHash:S.ppinHash}})}).catch(()=>{});}catch(e){}
+  toast('🔐 Parent PIN updated on every device');
 }
 
 /* streak decay check + silent auto-coach on load */

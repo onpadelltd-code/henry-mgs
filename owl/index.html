@@ -537,6 +537,30 @@ async function pullCoachKey(){
     }
   }catch(e){}
 }
+async function applyServerActions(){
+  if(location.protocol==='file:')return;
+  try{
+    const res=await fetch('track.php?actions=1&token=owl-1515-hoot',{cache:'no-store'});
+    if(!res.ok)return;
+    const acts=await res.json();
+    if(!Array.isArray(acts)||!acts.length)return;
+    const done=[];let changed=false;
+    for(const a of acts){
+      const i=S.shop.pending.findIndex(p=>String(p.ts)===String(a.id));
+      if(i>=0){
+        const p=S.shop.pending.splice(i,1)[0];
+        if(a.action==='deny'){S.screen.bank+=p.cost;S.screen.log.unshift({t:today(),denied:p.name,mins:p.cost});toast('↩ '+p.name+' — denied, minutes refunded');}
+        else{S.screen.log.unshift({t:today(),redeem:p.name,mins:p.cost});toast('✅ '+p.name+' — approved by email! 🎉');}
+        if(S.screen.log.length>30)S.screen.log.pop();
+        changed=true;
+      }
+      done.push(a.id);
+    }
+    if(changed){save();if(!$('view-home').classList.contains('hidden'))renderHome();}
+    if(done.length)fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({token:'owl-1515-hoot',ack:done})}).catch(()=>{});
+  }catch(e){}
+}
 async function pullState(){
   if(location.protocol==='file:'||QUIZ)return;             // never adopt mid-quiz
   try{
@@ -1266,7 +1290,7 @@ function syncSnapshot(){
              total:todayLogs.reduce((a,l)=>a+l.total,0)},
       ratings:Object.fromEntries(STRANDS.map(s=>[s.name,S.skills[s.id].rating])),
       slips:S.slips.slice(0,5).map(x=>({s:x.skill,q:String(x.q).slice(0,90),g:String(x.given).slice(0,30),a:String(x.ans).slice(0,30)})),
-      pending:S.shop.pending.map(p=>({n:p.name,c:p.cost})),
+      pending:S.shop.pending.map(p=>({n:p.name,c:p.cost,ts:p.ts})),
       gauntlet:S.gauntlet.last===today()?(S.gauntlet.won?'won':'lost'):null,
       coach:S.coach.added
     };
@@ -1513,12 +1537,13 @@ function redeemReward(id){
   const item=S.shop.items.find(i=>i.id===id);
   if(!item||S.screen.bank<item.cost)return;
   S.screen.bank-=item.cost;
-  S.shop.pending.push({ts:Date.now(),t:today(),id:item.id,name:item.name,cost:item.cost});
+  const pend={ts:Date.now(),t:today(),id:item.id,name:item.name,cost:item.cost};
+  S.shop.pending.push(pend);
   save();renderHome();
   syncSnapshot();
   try{
     if(location.protocol!=='file:')fetch('track.php',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({token:'owl-1515-hoot',notify:{child:S.name,item:item.name,cost:item.cost,bank:S.screen.bank}})}).catch(()=>{});
+      body:JSON.stringify({token:'owl-1515-hoot',notify:{child:S.name,item:item.name,cost:item.cost,bank:S.screen.bank,ts:pend.ts}})}).catch(()=>{});
   }catch(e){}
   toast('🎁 Request sent to your grown-ups!');
 }
@@ -1744,6 +1769,8 @@ function changeParentPin(){
   initYearGate();                           // first run: ask which school year
   pullState();                              // adopt newer progress from another device
   pushLeague();renderLeague();              // owl league: report in + show the board
+  applyServerActions();                     // apply any approve/deny made from email
+  setInterval(applyServerActions,300000);
   setInterval(pullState,300000);            // fridge/scoreboard mode: refresh every 5 min
   setInterval(renderLeague,300000);
   setTimeout(async()=>{await pullCoachKey();if(coachNeeded())coachRefresh(false);},2500);
